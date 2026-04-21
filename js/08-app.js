@@ -22,7 +22,8 @@ import {
   renderTransactions,
   renderFilterOptions,
   renderMeta,
-  renderImports
+  renderImportModal,
+  renderSelectedImportLabel
 } from './06-render.js';
 import { bindEvents } from './07-events.js';
 import { sortByDateDesc } from './03-utils.js';
@@ -41,14 +42,17 @@ async function initApp() {
     refreshUI();
 
     bindEvents({
-  onFileChange: handleFileChange,
-  onSearchInput: handleSearchInput,
-  onTypeChange: handleTypeChange,
-  onCurrencyChange: handleCurrencyChange,
-  onClearData: handleClearData,
-  onSelectImport: handleSelectImport,
-  onDeleteImport: handleDeleteImport
-});
+      onFileChange: handleFileChange,
+      onSearchInput: handleSearchInput,
+      onTypeChange: handleTypeChange,
+      onCurrencyChange: handleCurrencyChange,
+      onClearData: handleClearData,
+      onSelectImport: handleSelectImport,
+      onDeleteImport: handleDeleteImport,
+      onOpenImportModal: openImportModal,
+      onCloseImportModal: closeImportModal,
+      onShowAllImports: handleShowAllImports
+    });
 
     await registerServiceWorker();
 
@@ -80,24 +84,25 @@ async function loadStateFromDB() {
 function refreshUI() {
   let baseTransactions = state.transactions;
 
-if (state.selectedImportId) {
-  baseTransactions = baseTransactions.filter(
-    (tx) => tx.importId === state.selectedImportId
-  );
-}
+  if (state.selectedImportId) {
+    baseTransactions = baseTransactions.filter(
+      (tx) => tx.importId === state.selectedImportId
+    );
+  }
 
-const filtered = applyFilters(baseTransactions, state.filters);
+  const filtered = applyFilters(baseTransactions, state.filters);
   const summary = calcOverviewStats(filtered);
   const months = calcMonthlyStats(filtered);
   const types = getUniqueTypes(state.transactions);
   const currencies = getUniqueCurrencies(state.transactions);
 
   renderSummary(summary);
-renderMonthlyStats(months);
-renderTransactions(filtered);
-renderFilterOptions({ types, currencies });
-renderImports(state.imports, state.selectedImportId);
-restoreFilterValues();
+  renderMonthlyStats(months);
+  renderTransactions(filtered);
+  renderFilterOptions({ types, currencies });
+  renderImportModal(state.imports, state.selectedImportId);
+  renderSelectedImportLabel(state.imports, state.selectedImportId);
+  restoreFilterValues();
 
   renderMeta({
     importsCount: state.imports.length,
@@ -149,7 +154,10 @@ async function handleFileChange(event) {
       (item) => item.dateCompleted
     );
 
+    state.selectedImportId = importMeta.id;
+
     refreshUI();
+    closeImportModal();
 
     renderMeta({
       importsCount: state.imports.length,
@@ -191,8 +199,10 @@ async function handleClearData() {
     await clearAllAppData();
     state.transactions = [];
     state.imports = [];
+    state.selectedImportId = null;
     state.filters = { ...DEFAULT_FILTERS };
     refreshUI();
+    closeImportModal();
 
     renderMeta({
       importsCount: 0,
@@ -209,16 +219,6 @@ async function handleClearData() {
   }
 }
 
-async function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) return;
-
-  try {
-    await navigator.serviceWorker.register('./service-worker.js');
-  } catch (error) {
-    console.error('SW registration failed:', error);
-  }
-}
-
 function handleSelectImport(importId) {
   if (state.selectedImportId === importId) {
     state.selectedImportId = null;
@@ -227,6 +227,13 @@ function handleSelectImport(importId) {
   }
 
   refreshUI();
+  closeImportModal();
+}
+
+function handleShowAllImports() {
+  state.selectedImportId = null;
+  refreshUI();
+  closeImportModal();
 }
 
 async function handleDeleteImport(importId) {
@@ -258,6 +265,24 @@ async function handleDeleteImport(importId) {
       txCount: state.transactions.length,
       statusText: 'Delete failed'
     });
+  }
+}
+
+function openImportModal() {
+  document.getElementById('importModal').classList.remove('hidden');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.add('hidden');
+}
+
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  try {
+    await navigator.serviceWorker.register('./service-worker.js');
+  } catch (error) {
+    console.error('SW registration failed:', error);
   }
 }
 

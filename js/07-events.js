@@ -5,6 +5,11 @@ export function bindEvents(handlers) {
   document.getElementById('currencyFilter').addEventListener('change', handlers.onCurrencyChange);
   document.getElementById('clearDbBtn').addEventListener('click', handlers.onClearData);
 
+  document.getElementById('selectImportBtn').addEventListener('click', handlers.onOpenImportModal);
+  document.getElementById('closeImportModal').addEventListener('click', handlers.onCloseImportModal);
+  document.getElementById('importModalBackdrop').addEventListener('click', handlers.onCloseImportModal);
+  document.getElementById('showAllImportsBtn').addEventListener('click', handlers.onShowAllImports);
+
   document.addEventListener('click', (event) => {
     const selectBtn = event.target.closest('[data-select-import]');
     const deleteBtn = event.target.closest('[data-delete-import]');

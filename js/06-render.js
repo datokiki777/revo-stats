@@ -48,37 +48,38 @@ export function renderTransactions(transactions) {
   }
 
   root.className = 'tx-list';
-root.innerHTML = visible
-  .map((tx) => {
-    const amountClass = tx.amount >= 0 ? 'income' : 'expense';
+  root.innerHTML = visible
+    .map((tx) => {
+      const amountClass = tx.amount >= 0 ? 'income' : 'expense';
+      const feeText = Number(tx.fee || 0) === 0
+        ? ''
+        : `Fee: ${formatMoney(tx.fee, tx.currency || 'EUR')}`;
 
-    return `
-      <article class="tx-row">
-        <div class="tx-left">
-          <div class="tx-main">
-            <div class="tx-desc">${escapeHtml(tx.description || '(No description)')}</div>
-            <div class="tx-sub">
-              ${escapeHtml(formatDate(tx.dateCompleted))} • ${escapeHtml(tx.type || 'Unknown type')}
-            </div>
-            <div class="tx-meta-line">
-              <span class="badge">${escapeHtml(tx.currency || '—')}</span>
-              <span class="badge">${escapeHtml(tx.state || '—')}</span>
+      return `
+        <article class="tx-row">
+          <div class="tx-left">
+            <div class="tx-main">
+              <div class="tx-desc">${escapeHtml(tx.description || '(No description)')}</div>
+              <div class="tx-sub">
+                ${escapeHtml(formatDate(tx.dateCompleted))} • ${escapeHtml(tx.type || 'Unknown type')}
+              </div>
+              <div class="tx-meta-line">
+                <span class="badge">${escapeHtml(tx.currency || '—')}</span>
+                <span class="badge">${escapeHtml(tx.state || '—')}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="tx-right">
-          <div class="amount ${amountClass}">
-            ${formatMoney(tx.amount, tx.currency || 'EUR')}
+          <div class="tx-right">
+            <div class="amount ${amountClass}">
+              ${formatMoney(tx.amount, tx.currency || 'EUR')}
+            </div>
+            ${feeText ? `<div class="tx-fee">${feeText}</div>` : ''}
           </div>
-          <div class="tx-fee">
-            Fee: ${formatMoney(tx.fee, tx.currency || 'EUR')}
-          </div>
-        </div>
-      </article>
-    `;
-  })
-  .join('');
+        </article>
+      `;
+    })
+    .join('');
 }
 
 export function renderFilterOptions({ types, currencies }) {
@@ -102,49 +103,65 @@ export function renderMeta({ importsCount, txCount, statusText }) {
   document.getElementById('statusText').textContent = statusText;
 }
 
-export function renderImports(imports, selectedId) {
-  const root = document.getElementById('importsList');
+export function renderSelectedImportLabel(imports, selectedId) {
+  const el = document.getElementById('selectedImportName');
+  if (!el) return;
 
+  if (!selectedId) {
+    el.textContent = 'All imports';
+    return;
+  }
+
+  const found = imports.find((imp) => imp.id === selectedId);
+  el.textContent = found ? found.fileName : 'All imports';
+}
+
+export function renderImportModal(imports, selectedId) {
+  const root = document.getElementById('modalImportList');
   if (!root) return;
 
   if (!imports.length) {
-    root.className = 'imports-list empty-state';
+    root.className = 'modal-import-list empty-state';
     root.textContent = 'No imports yet';
     return;
   }
 
-  root.className = 'imports-list';
+  root.className = 'modal-import-list';
+  root.innerHTML = imports
+    .map((imp) => {
+      const active = imp.id === selectedId;
 
-  root.innerHTML = imports.map((imp) => {
-    const isActive = imp.id === selectedId;
+      return `
+        <div class="modal-import-card">
+          <div class="modal-import-main" data-select-import="${imp.id}">
+            <div class="modal-import-name">${escapeHtml(imp.fileName)}</div>
+            <div class="modal-import-sub">
+              ${imp.rowCount} rows • ${escapeHtml((imp.dateFrom || '').slice(0, 10))} → ${escapeHtml((imp.dateTo || '').slice(0, 10))}
+            </div>
+            <div class="modal-import-date muted">
+              ${escapeHtml((imp.importedAt || '').slice(0, 10))}
+            </div>
+          </div>
 
-    return `
-      <div class="import-row">
-        <div class="import-main">
-          <div class="import-name">${escapeHtml(imp.fileName)}</div>
-          <div class="import-sub">
-            ${imp.rowCount} rows • ${escapeHtml((imp.dateFrom || '').slice(0, 10))} → ${escapeHtml((imp.dateTo || '').slice(0, 10))}
+          <div class="modal-import-actions">
+            <button
+              class="import-btn ${active ? 'active' : ''}"
+              type="button"
+              data-select-import="${imp.id}"
+            >
+              ${active ? 'Selected' : 'View'}
+            </button>
+
+            <button
+              class="import-btn danger"
+              type="button"
+              data-delete-import="${imp.id}"
+            >
+              Delete
+            </button>
           </div>
         </div>
-
-        <div class="muted">${escapeHtml((imp.importedAt || '').slice(0, 10))}</div>
-
-        <button
-          class="import-btn ${isActive ? 'active' : ''}"
-          type="button"
-          data-select-import="${imp.id}"
-        >
-          ${isActive ? 'Selected' : 'View'}
-        </button>
-
-        <button
-          class="import-btn danger"
-          type="button"
-          data-delete-import="${imp.id}"
-        >
-          Delete
-        </button>
-      </div>
-    `;
-  }).join('');
+      `;
+    })
+    .join('');
 }
