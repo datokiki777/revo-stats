@@ -163,7 +163,7 @@ select {
 
 .filters-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 10px;
 }
 
@@ -731,5 +731,130 @@ select {
 
   .modal-import-actions {
     flex-direction: column;
+  }
+}
+
+.input-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.modal-type-list {
+  display: grid;
+  gap: 10px;
+}
+
+.type-option {
+  min-height: 48px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.06);
+  color: white;
+  padding: 0 14px;
+  text-align: left;
+  font: inherit;
+}
+
+.type-option.active {
+  background: var(--primary);
+  color: #071633;
+  border-color: transparent;
+  font-weight: 700;
+}
+
+.merchant-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.merchant-summary {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+}
+
+.merchant-summary-left {
+  min-width: 0;
+}
+
+.merchant-summary-right {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+  text-align: right;
+}
+
+.merchant-name {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.merchant-sub {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.merchant-total {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.merchant-arrow {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.merchant-arrow.open {
+  color: var(--text);
+}
+
+.merchant-children {
+  display: none;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.merchant-children.open {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.child-tx-row {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+@media (max-width: 900px) {
+  .merchant-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .merchant-summary-right {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .merchant-total {
+    font-size: 18px;
   }
 }
