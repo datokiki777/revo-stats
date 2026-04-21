@@ -12,7 +12,6 @@ import { readFileText, parseCSV, normalizeTransactions, buildImportMeta } from '
 import {
   calcOverviewStats,
   calcMonthlyStats,
-  getCategoryOptions,
   applyFilters
 } from './05-stats.js';
 import {
@@ -33,7 +32,9 @@ const state = {
   imports: [],
   selectedImportId: null,
   expandedMerchants: {},
-  filters: { ...DEFAULT_FILTERS }
+  filters: { ...DEFAULT_FILTERS },
+  updateWorker: null,
+  updateReady: false
 };
 
 async function initApp() {
@@ -54,7 +55,9 @@ async function initApp() {
   onOpenTypeModal: openTypeModal,
   onCloseTypeModal: closeTypeModal,
   onTypeSelect: handleTypeSelect,
-  onMerchantToggle: handleMerchantToggle
+  onMerchantToggle: handleMerchantToggle,
+  onDismissUpdate: dismissUpdateModal,
+      onApplyUpdate: applyAppUpdate
 });
 
     await registerServiceWorker();
@@ -290,11 +293,52 @@ function closeImportModal() {
   document.getElementById('importModal').classList.add('hidden');
 }
 
+function showUpdateModal() {
+  state.updateReady = true;
+  document.getElementById('updateModal')?.classList.remove('hidden');
+}
+
+function dismissUpdateModal() {
+  state.updateReady = false;
+  document.getElementById('updateModal')?.classList.add('hidden');
+}
+
+function applyAppUpdate() {
+  if (!state.updateWorker) return;
+
+  state.updateWorker.postMessage({ type: 'SKIP_WAITING' });
+  dismissUpdateModal();
+}
+
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
   try {
-    await navigator.serviceWorker.register('./service-worker.js');
+    const registration = await navigator.serviceWorker.register('./service-worker.js');
+
+    if (registration.waiting) {
+      state.updateWorker = registration.waiting;
+      showUpdateModal();
+    }
+
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      if (!newWorker) return;
+
+      newWorker.addEventListener('statechange', () => {
+        if (
+          newWorker.state === 'installed' &&
+          navigator.serviceWorker.controller
+        ) {
+          state.updateWorker = newWorker;
+          showUpdateModal();
+        }
+      });
+    });
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
   } catch (error) {
     console.error('SW registration failed:', error);
   }
