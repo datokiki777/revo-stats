@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>Revo Stats</title>
+  <meta name="theme-color" content="#071633" />
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon-192.png" />
+
+  <link rel="stylesheet" href="./css/01-main.css" />
+  <link rel="stylesheet" href="./css/02-effects.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <h1>Revo Stats</h1>
+        <p class="subtitle">CSV statement reader</p>
+      </div>
+
+      <div class="topbar-actions">
+        <label class="btn primary file-btn">
+          <input id="fileInput" type="file" accept=".csv,text/csv" hidden />
+          Import CSV
+        </label>
+
+        <button id="clearDbBtn" class="btn danger" type="button">
+          Clear Data
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel import-panel">
+        <div class="panel-head">
+          <h2>Import</h2>
+        </div>
+
+        <div class="import-meta">
+          <div><strong>Imported files:</strong> <span id="importCount">0</span></div>
+          <div><strong>Total transactions:</strong> <span id="txCount">0</span></div>
+          <div><strong>Status:</strong> <span id="statusText">Ready</span></div>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <article class="card stat-card">
+          <div class="label">Income</div>
+          <div class="value" id="incomeValue">€0.00</div>
+        </article>
+
+        <article class="card stat-card">
+          <div class="label">Expenses</div>
+          <div class="value" id="expenseValue">€0.00</div>
+        </article>
+
+        <article class="card stat-card">
+          <div class="label">Net</div>
+          <div class="value" id="netValue">€0.00</div>
+        </article>
+
+        <article class="card stat-card">
+          <div class="label">Fees</div>
+          <div class="value" id="feeValue">€0.00</div>
+        </article>
+      </section>
+
+      <section class="panel filters-panel">
+        <div class="panel-head">
+          <h2>Filters</h2>
+        </div>
+
+        <div class="filters-row">
+          <input
+            id="searchInput"
+            class="input"
+            type="search"
+            placeholder="Search description, type, currency..."
+          />
+
+          <select id="typeFilter" class="input">
+            <option value="all">All types</option>
+          </select>
+
+          <select id="currencyFilter" class="input">
+            <option value="all">All currencies</option>
+          </select>
+        </div>
+      </section>
+
+     <section class="panel">
+  <div class="panel-head">
+    <h2>Imports</h2>
+  </div>
+
+  <div id="importsList" class="imports-list empty-state">
+    No imports yet
+  </div>
+</section>
+     
+       <section class="panel">
+        <div class="panel-head">
+          <h2>Monthly Stats</h2>
+        </div>
+
+        <div id="monthlyStats" class="monthly-list empty-state">
+          No data yet
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Transactions</h2>
+          <span class="muted" id="visibleCount">0 shown</span>
+        </div>
+
+        <div id="transactionsList" class="tx-list empty-state">
+          Import a CSV file to see transactions
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./js/08-app.js"></script>
+</body>
+</html>
