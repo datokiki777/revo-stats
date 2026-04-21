@@ -1,5 +1,5 @@
-const CACHE = "revo-stats-shell-v1.1";
-const RUNTIME_CACHE = "revo-stats-runtime-v1.1";
+const CACHE = "revo-stats-shell-v1.5";
+const RUNTIME_CACHE = "revo-stats-runtime-v1.5";
 
 const CORE_ASSETS = [
   "./",
