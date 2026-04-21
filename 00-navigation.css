@@ -1,23 +1,62 @@
-/*
-CSS MAP (short)
+01-main.css
+═══════════════════════════════════════
+- Base layout:
+  - body, app, panels
+- Topbar:
+  - .topbar
+  - .topbar-actions
+- Buttons:
+  - .btn
+  - .btn.primary
+  - .btn.danger
 
-01-main.css → all UI styles
-02-effects.css → transitions / effects
+- Summary:
+  - .summary-grid
+  - .stat-card
 
-MAIN BLOCKS:
-.topbar → header
-.btn → buttons
-.panel → cards
-.summary-grid → stats cards
-.filters-row → filters
-.tx-row → transaction card
-.modal → import modal
+- Filters:
+  - .filters-row
+  - .input
+  - .input-btn
 
-CHANGE WHERE:
+- Transactions:
+  - .merchant-card
+  - .merchant-summary
+  - .merchant-name
+  - .merchant-total
+  - .merchant-children
+  - .tx-row (child rows)
+  - .tx-left / .tx-right
+  - .tx-desc / .tx-sub
+  - .tx-fee
+  - .badge
 
-buttons → .btn
-stats → .stat-card
-transactions → .tx-row
-modal → .modal
-mobile → @media
-*/
+- Import modal:
+  - .modal
+  - .modal-backdrop
+  - .modal-sheet
+  - .modal-import-list
+  - .modal-import-card
+  - .import-btn
+
+- Type modal:
+  - .modal-type-list
+  - .type-option
+
+- Responsive:
+  - @media (max-width: 900px)
+
+02-effects.css
+═══════════════════════════════════════
+- Transitions
+- Hover effects
+- Active states
+
+CHANGE GUIDE
+═══════════════════════════════════════
+Buttons → .btn
+Stats → .stat-card
+Transactions → .merchant-card / .tx-row
+Modals → .modal / .modal-sheet
+Filters → .filters-row / .input
+Mobile → @media

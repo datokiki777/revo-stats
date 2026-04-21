@@ -24,10 +24,11 @@
       </div>
 
       <div class="topbar-actions">
-        <label class="btn primary file-btn">
-          <input id="fileInput" type="file" accept=".csv,text/csv" hidden />
-          Import CSV
-        </label>
+        <button id="importBtn" class="btn primary" type="button">
+  Import CSV
+</button>
+
+<input id="fileInput" type="file" accept=".csv,text/csv" hidden />
 
         <button id="clearDbBtn" class="btn danger" type="button">
           Clear Data
@@ -88,13 +89,10 @@
             placeholder="Search description, type, currency..."
           />
 
-          <select id="typeFilter" class="input">
-            <option value="all">All types</option>
-          </select>
-
-          <select id="currencyFilter" class="input">
-            <option value="all">All currencies</option>
-          </select>
+          <button id="typeFilterBtn" class="input input-btn" type="button">
+  <span>Type:</span>
+  <strong id="typeFilterLabel">All types</strong>
+</button>
         </div>
       </section>
 
@@ -137,6 +135,19 @@
       <div id="modalImportList" class="modal-import-list"></div>
     </div>
   </div>
+  
+  <div id="typeModal" class="modal hidden">
+  <div class="modal-backdrop" id="typeModalBackdrop"></div>
+
+  <div class="modal-sheet">
+    <div class="modal-sheet-header">
+      <h3>Select Type</h3>
+      <button id="closeTypeModal" class="modal-close" type="button">✕</button>
+    </div>
+
+    <div id="typeModalList" class="modal-type-list"></div>
+  </div>
+</div>
 
   <script type="module" src="./js/08-app.js"></script>
 </body>
