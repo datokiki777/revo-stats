@@ -1,0 +1,23 @@
+/*
+CSS MAP (short)
+
+01-main.css → all UI styles
+02-effects.css → transitions / effects
+
+MAIN BLOCKS:
+.topbar → header
+.btn → buttons
+.panel → cards
+.summary-grid → stats cards
+.filters-row → filters
+.tx-row → transaction card
+.modal → import modal
+
+CHANGE WHERE:
+
+buttons → .btn
+stats → .stat-card
+transactions → .tx-row
+modal → .modal
+mobile → @media
+*/

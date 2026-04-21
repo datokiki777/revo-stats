@@ -32,6 +32,10 @@
         <button id="clearDbBtn" class="btn danger" type="button">
           Clear Data
         </button>
+
+        <button id="selectImportBtn" class="btn" type="button">
+          Select File
+        </button>
       </div>
     </header>
 
@@ -45,6 +49,7 @@
           <div><strong>Imported files:</strong> <span id="importCount">0</span></div>
           <div><strong>Total transactions:</strong> <span id="txCount">0</span></div>
           <div><strong>Status:</strong> <span id="statusText">Ready</span></div>
+          <div><strong>Selected file:</strong> <span id="selectedImportName">All imports</span></div>
         </div>
       </section>
 
@@ -93,17 +98,7 @@
         </div>
       </section>
 
-     <section class="panel">
-  <div class="panel-head">
-    <h2>Imports</h2>
-  </div>
-
-  <div id="importsList" class="imports-list empty-state">
-    No imports yet
-  </div>
-</section>
-     
-       <section class="panel">
+      <section class="panel">
         <div class="panel-head">
           <h2>Monthly Stats</h2>
         </div>
@@ -124,6 +119,23 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <div id="importModal" class="modal hidden">
+    <div class="modal-backdrop" id="importModalBackdrop"></div>
+
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3>Select File</h3>
+        <button id="closeImportModal" class="modal-close" type="button">✕</button>
+      </div>
+
+      <div class="modal-sheet-actions">
+        <button id="showAllImportsBtn" class="btn" type="button">Show All</button>
+      </div>
+
+      <div id="modalImportList" class="modal-import-list"></div>
+    </div>
   </div>
 
   <script type="module" src="./js/08-app.js"></script>
