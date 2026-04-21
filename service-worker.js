@@ -1,4 +1,4 @@
-const CACHE_NAME = 'revo-stats-v1';
+const CACHE_NAME = 'revo-stats-v1.1';
 
 const ASSETS = [
   './',
