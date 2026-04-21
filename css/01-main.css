@@ -858,3 +858,22 @@ select {
     font-size: 18px;
   }
 }
+
+#updateModal .modal-sheet {
+  max-width: 520px;
+  margin: 0 auto;
+  left: 12px;
+  right: 12px;
+  bottom: 16px;
+  border-radius: 20px;
+}
+
+@media (max-width: 900px) {
+  #updateModal .modal-sheet {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: none;
+    border-radius: 20px 20px 0 0;
+  }
+}
