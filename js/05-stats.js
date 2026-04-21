@@ -51,27 +51,32 @@ export function calcMonthlyStats(transactions) {
   return [...map.values()].sort((a, b) => b.monthKey.localeCompare(a.monthKey));
 }
 
-export function getUniqueTypes(transactions) {
-  return [...new Set(transactions.map((tx) => tx.type).filter(Boolean))].sort();
-}
-
-export function getUniqueCurrencies(transactions) {
-  return [...new Set(transactions.map((tx) => tx.currency).filter(Boolean))].sort();
+export function getCategoryOptions() {
+  return [
+    'all',
+    'Food',
+    'Tickets',
+    'Transport',
+    'Shopping',
+    'Transfers',
+    'Cash',
+    'Fees',
+    'Other'
+  ];
 }
 
 export function applyFilters(transactions, filters) {
   const search = String(filters.search || '').trim().toLowerCase();
   const type = filters.type || 'all';
-  const currency = filters.currency || 'all';
 
   return transactions.filter((tx) => {
-    if (type !== 'all' && tx.type !== type) return false;
-    if (currency !== 'all' && tx.currency !== currency) return false;
+    if (type !== 'all' && tx.category !== type) return false;
 
     if (search) {
       const haystack = [
         tx.description,
         tx.type,
+        tx.category,
         tx.currency,
         tx.state
       ]

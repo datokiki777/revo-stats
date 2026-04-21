@@ -35,51 +35,155 @@ export function renderMonthlyStats(months) {
     .join('');
 }
 
-export function renderTransactions(transactions) {
+export function renderTransactions(transactions, expandedMerchants = {}) {
   const root = document.getElementById('transactionsList');
-  const visible = transactions.slice(0, UI.maxTransactionsShown);
 
-  document.getElementById('visibleCount').textContent = `${visible.length} shown`;
+  const groups = groupTransactionsByMerchant(transactions);
+  document.getElementById('visibleCount').textContent = `${groups.length} groups`;
 
-  if (!visible.length) {
+  if (!groups.length) {
     root.className = 'tx-list empty-state';
     root.textContent = 'No transactions match current filters';
     return;
   }
 
   root.className = 'tx-list';
-  root.innerHTML = visible
-    .map((tx) => {
-      const amountClass = tx.amount >= 0 ? 'income' : 'expense';
-      const feeText = Number(tx.fee || 0) === 0
-        ? ''
-        : `Fee: ${formatMoney(tx.fee, tx.currency || 'EUR')}`;
+  root.innerHTML = groups.map((group) => {
+    const isOpen = !!expandedMerchants[group.key];
+    const totalClass = group.total >= 0 ? 'income' : 'expense';
 
-      return `
-        <article class="tx-row">
-          <div class="tx-left">
-            <div class="tx-main">
-              <div class="tx-desc">${escapeHtml(tx.description || '(No description)')}</div>
-              <div class="tx-sub">
-                ${escapeHtml(formatDate(tx.dateCompleted))} • ${escapeHtml(tx.type || 'Unknown type')}
-              </div>
-              <div class="tx-meta-line">
-                <span class="badge">${escapeHtml(tx.currency || '—')}</span>
-                <span class="badge">${escapeHtml(tx.state || '—')}</span>
-              </div>
+    return `
+      <article class="merchant-card">
+        <button
+          class="merchant-summary"
+          type="button"
+          data-merchant-toggle="${escapeHtml(group.key)}"
+        >
+          <div class="merchant-summary-left">
+            <div class="merchant-name">${escapeHtml(group.name)}</div>
+            <div class="merchant-sub">
+              ${group.count} transactions • Last: ${escapeHtml(formatDate(group.lastDate))}
             </div>
           </div>
 
-          <div class="tx-right">
-            <div class="amount ${amountClass}">
-              ${formatMoney(tx.amount, tx.currency || 'EUR')}
+          <div class="merchant-summary-right">
+            <div class="merchant-total ${totalClass}">
+              ${formatMoney(group.total, group.currency || 'EUR')}
             </div>
-            ${feeText ? `<div class="tx-fee">${feeText}</div>` : ''}
+            <div class="merchant-arrow ${isOpen ? 'open' : ''}">
+              ${isOpen ? '▲' : '▼'}
+            </div>
           </div>
-        </article>
-      `;
-    })
-    .join('');
+        </button>
+
+        <div class="merchant-children ${isOpen ? 'open' : ''}">
+          ${group.items.map((tx) => {
+            const amountClass = tx.amount >= 0 ? 'income' : 'expense';
+            const feeText = Number(tx.fee || 0) === 0
+              ? ''
+              : `Fee: ${formatMoney(tx.fee, tx.currency || 'EUR')}`;
+
+            return `
+              <article class="tx-row child-tx-row">
+                <div class="tx-left">
+                  <div class="tx-main">
+                    <div class="tx-sub">
+                      ${escapeHtml(formatDate(tx.dateCompleted))} • ${escapeHtml(tx.type || 'Unknown type')}
+                    </div>
+                    <div class="tx-meta-line">
+                      <span class="badge">${escapeHtml(tx.currency || '—')}</span>
+                      <span class="badge">${escapeHtml(tx.state || '—')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tx-right">
+                  <div class="amount ${amountClass}">
+                    ${formatMoney(tx.amount, tx.currency || 'EUR')}
+                  </div>
+                  ${feeText ? `<div class="tx-fee">${feeText}</div>` : ''}
+                </div>
+              </article>
+            `;
+          }).join('')}
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+function groupTransactionsByMerchant(transactions) {
+  const map = new Map();
+
+  for (const tx of transactions) {
+    const name = normalizeMerchantName(tx.description || 'Unknown');
+    const key = name.toLowerCase();
+    const currency = tx.currency || 'EUR';
+
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        name,
+        currency,
+        count: 0,
+        total: 0,
+        lastDate: tx.dateCompleted || '',
+        items: []
+      });
+    }
+
+    const group = map.get(key);
+    group.count += 1;
+    group.total += Number(tx.amount || 0);
+    group.items.push(tx);
+
+    if ((tx.dateCompleted || '') > (group.lastDate || '')) {
+      group.lastDate = tx.dateCompleted || '';
+    }
+  }
+
+  const groups = [...map.values()];
+
+  groups.forEach((group) => {
+    group.items.sort((a, b) => {
+      const da = new Date(a.dateCompleted || 0).getTime();
+      const db = new Date(b.dateCompleted || 0).getTime();
+      return db - da;
+    });
+  });
+
+  groups.sort((a, b) => {
+    const da = new Date(a.lastDate || 0).getTime();
+    const db = new Date(b.lastDate || 0).getTime();
+    return db - da;
+  });
+
+  return groups;
+}
+
+function normalizeMerchantName(description) {
+  const text = String(description || '').trim();
+
+  if (!text) return 'Unknown';
+
+  const lower = text.toLowerCase();
+
+  if (lower.includes('aldi')) return 'ALDI';
+  if (lower.includes('lidl')) return 'LIDL';
+  if (lower.includes('rewe')) return 'REWE';
+  if (lower.includes('netto')) return 'NETTO';
+  if (lower.includes('edeka')) return 'EDEKA';
+  if (lower.includes('kaufland')) return 'KAUFLAND';
+  if (lower.includes('penny')) return 'PENNY';
+  if (lower.includes('burger king')) return 'Burger King';
+  if (lower.includes('mcdonald')) return 'McDonald’s';
+  if (lower.includes('subway')) return 'Subway';
+  if (lower.includes('deutsche bahn') || lower.includes(' db ')) return 'Deutsche Bahn';
+  if (lower.includes('ruhrbahn')) return 'Ruhrbahn';
+  if (lower.includes('uber')) return 'Uber';
+  if (lower.includes('bolt')) return 'Bolt';
+
+  return text;
 }
 
 export function renderFilterOptions({ types, currencies }) {
@@ -164,4 +268,43 @@ export function renderImportModal(imports, selectedId) {
       `;
     })
     .join('');
+}
+
+export function renderTypeFilterLabel(typeValue) {
+  const el = document.getElementById('typeFilterLabel');
+  if (!el) return;
+
+  el.textContent = typeValue === 'all' ? 'All types' : typeValue;
+}
+
+export function renderTypeModal(selectedType) {
+  const root = document.getElementById('typeModalList');
+  if (!root) return;
+
+  const options = [
+    'all',
+    'Food',
+    'Tickets',
+    'Transport',
+    'Shopping',
+    'Transfers',
+    'Cash',
+    'Fees',
+    'Other'
+  ];
+
+  root.innerHTML = options.map((item) => {
+    const active = item === selectedType;
+    const label = item === 'all' ? 'All types' : item;
+
+    return `
+      <button
+        class="type-option ${active ? 'active' : ''}"
+        type="button"
+        data-type-option="${item}"
+      >
+        ${escapeHtml(label)}
+      </button>
+    `;
+  }).join('');
 }

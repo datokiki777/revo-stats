@@ -9,8 +9,7 @@ export const STORES = {
 
 export const DEFAULT_FILTERS = {
   search: '',
-  type: 'all',
-  currency: 'all'
+  type: 'all'
 };
 
 export const UI = {

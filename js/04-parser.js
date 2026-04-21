@@ -92,23 +92,26 @@ const completedDate = normalizeDate(
 );
     const fee = safeNumber(row['Fee']);
     const balance = safeNumber(row['Balance']);
+    
+    const category = detectCategory(description, type, amount, fee);
 
     return {
-      id: uid('tx'),
-      importId,
-      type,
-      description,
-      currency,
-      state,
-      startedDate,
-      dateCompleted: completedDate,
-      amount,
-      fee,
-      balance,
-      monthKey: monthKeyFromDate(completedDate),
-      direction: amount >= 0 ? 'income' : 'expense',
-      raw: row
-    };
+  id: uid('tx'),
+  importId,
+  type,
+  category,
+  description,
+  currency,
+  state,
+  startedDate,
+  dateCompleted: completedDate,
+  amount,
+  fee,
+  balance,
+  monthKey: monthKeyFromDate(completedDate),
+  direction: amount >= 0 ? 'income' : 'expense',
+  raw: row
+};
   });
 }
 
@@ -140,4 +143,87 @@ export function buildImportMeta(fileName, transactions) {
     dateFrom: dates[0] || '',
     dateTo: dates[dates.length - 1] || ''
   };
+}
+
+function detectCategory(description, type, amount, fee) {
+  const text = `${description} ${type}`.toLowerCase();
+
+  if (fee > 0 || text.includes('fee')) {
+    return 'Fees';
+  }
+
+  if (
+    text.includes('aldi') ||
+    text.includes('lidl') ||
+    text.includes('rewe') ||
+    text.includes('edeka') ||
+    text.includes('kaufland') ||
+    text.includes('penny') ||
+    text.includes('netto') ||
+    text.includes('restaurant') ||
+    text.includes('pizza') ||
+    text.includes('burger') ||
+    text.includes('kebab') ||
+    text.includes('doner') ||
+    text.includes('mcdonald') ||
+    text.includes('subway') ||
+    text.includes('cafe') ||
+    text.includes('bakery')
+  ) {
+    return 'Food';
+  }
+
+  if (
+    text.includes('db') ||
+    text.includes('deutsche bahn') ||
+    text.includes('bahn') ||
+    text.includes('vrr') ||
+    text.includes('ruhrbahn') ||
+    text.includes('ticket') ||
+    text.includes('bus') ||
+    text.includes('tram')
+  ) {
+    return 'Tickets';
+  }
+
+  if (
+    text.includes('uber') ||
+    text.includes('bolt') ||
+    text.includes('taxi') ||
+    text.includes('shell') ||
+    text.includes('aral') ||
+    text.includes('esso')
+  ) {
+    return 'Transport';
+  }
+
+  if (
+    text.includes('amazon') ||
+    text.includes('ebay') ||
+    text.includes('zara') ||
+    text.includes('hm') ||
+    text.includes('h&m') ||
+    text.includes('ikea') ||
+    text.includes('dm') ||
+    text.includes('rossmann')
+  ) {
+    return 'Shopping';
+  }
+
+  if (
+    text.includes('transfer') ||
+    text.includes('bank transfer') ||
+    text.includes('card to card')
+  ) {
+    return 'Transfers';
+  }
+
+  if (
+    text.includes('cash') ||
+    text.includes('atm')
+  ) {
+    return 'Cash';
+  }
+
+  return 'Other';
 }
