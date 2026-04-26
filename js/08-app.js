@@ -522,6 +522,8 @@ function dismissUpdateModal() {
 function applyAppUpdate() {
   if (!state.updateWorker) return;
 
+  userTriggeredUpdate = true; // 🔥 ეს ამატებს კონტროლს
+
   state.updateWorker.postMessage({ type: 'SKIP_WAITING' });
   dismissUpdateModal();
 }
@@ -553,10 +555,14 @@ async function registerServiceWorker() {
     });
 
     let refreshingAfterUpdate = false;
+let userTriggeredUpdate = false;
 
 navigator.serviceWorker.addEventListener('controllerchange', () => {
+  if (!userTriggeredUpdate) return; // 🔥 მთავარი ფიქსი
+
   if (refreshingAfterUpdate) return;
   refreshingAfterUpdate = true;
+
   window.location.reload();
 });
   } catch (error) {
