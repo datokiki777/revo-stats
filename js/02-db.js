@@ -100,6 +100,7 @@ export async function clearAllAppData() {
   await dbClear(STORES.transactions);
   await dbClear(STORES.imports);
   await dbClear(STORES.settings);
+  await dbClear('rules');
 }
 
 export async function dbDelete(storeName, key) {

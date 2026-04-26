@@ -1,5 +1,4 @@
 import { uid, safeNumber, monthKeyFromDate } from './03-utils.js';
-import { dbGetAll } from './02-db.js';
 
 export function readFileText(file) {
   return file.text();
@@ -75,56 +74,48 @@ export function normalizeTransactions(rawRows, importId) {
     const state = String(row['State'] || '').trim() || 'UNKNOWN';
 
     const startedDate = normalizeDate(
-  row['Started Date'] ||
-  row['Started Date (UTC)'] ||
-  row['Date']
-);
+      row['Started Date'] ||
+      row['Started Date (UTC)'] ||
+      row['Date']
+    );
 
-const completedDate = normalizeDate(
-  row['Completed Date'] ||
-  row['Completed Date (UTC)'] ||
-  row['Date']
-) || startedDate;
+    const completedDate = normalizeDate(
+      row['Completed Date'] ||
+      row['Completed Date (UTC)'] ||
+      row['Date']
+    ) || startedDate;
 
     const amount = safeNumber(
-  row['Amount'] ||
-  row['Amount (EUR)'] ||
-  row['Amount (GBP)']
-);
+      row['Amount'] ||
+      row['Amount (EUR)'] ||
+      row['Amount (GBP)']
+    );
     const fee = safeNumber(row['Fee']);
     const balance = safeNumber(row['Balance']);
-    
-    const rules = window.__categoryRules || [];
-
-for (const rule of rules) {
-  if (text.includes(rule.key)) {
-    return rule.category;
-  }
-}
     
     const category = detectCategory(description, type, amount, fee);
 
     const tx = {
-  id: uid('tx'),
-  importId,
-  type,
-  category,
-  description,
-  currency,
-  state,
-  startedDate,
-  dateCompleted: completedDate,
-  amount,
-  fee,
-  balance,
-  monthKey: monthKeyFromDate(completedDate),
-  direction: amount >= 0 ? 'income' : 'expense',
-  raw: row
-};
+      id: uid('tx'),
+      importId,
+      type,
+      category,
+      description,
+      currency,
+      state,
+      startedDate,
+      dateCompleted: completedDate,
+      amount,
+      fee,
+      balance,
+      monthKey: monthKeyFromDate(completedDate),
+      direction: amount >= 0 ? 'income' : 'expense',
+      raw: row
+    };
 
-tx.fingerprint = buildSmartFingerprint(tx);
+    tx.fingerprint = buildSmartFingerprint(tx);
 
-return tx;
+    return tx;
   });
 }
 
@@ -161,7 +152,17 @@ export function buildImportMeta(fileName, transactions) {
 function detectCategory(description, type, amount, fee) {
   const text = `${description} ${type}`.toLowerCase();
 
-  // 1. Fees (ყველაზე მაღალი პრიორიტეტი)
+  // User-defined rules from database
+  const rules = window.__categoryRules || [];
+
+  for (const rule of rules) {
+    const key = String(rule.key || '').trim().toLowerCase();
+    if (key && text.includes(key)) {
+      return rule.category;
+    }
+  }
+
+  // 1. Fees (highest priority)
   if (fee > 0 || text.includes('fee')) {
     return 'Fees';
   }
@@ -212,7 +213,7 @@ function detectCategory(description, type, amount, fee) {
     return 'Transport';
   }
 
-  // 6. Food (EATS აქ უნდა წავიდეს!)
+  // 6. Food
   if (
     text.includes('aldi') ||
     text.includes('lidl') ||
@@ -230,7 +231,7 @@ function detectCategory(description, type, amount, fee) {
     text.includes('subway') ||
     text.includes('cafe') ||
     text.includes('bakery') ||
-    text.includes('eat') // Uber Eats catch
+    text.includes('eat')
   ) {
     return 'Food';
   }
@@ -251,6 +252,7 @@ function detectCategory(description, type, amount, fee) {
 
   return 'Other';
 }
+
 export function buildSmartFingerprint(tx) {
   const dateKey = String(tx.dateCompleted || '').slice(0, 10);
   const amountKey = Number(tx.amount || 0).toFixed(2);

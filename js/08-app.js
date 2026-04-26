@@ -86,13 +86,19 @@ window.__categoryRules = rules || [];
 }
 
 async function loadStateFromDB() {
-  const [transactions, imports] = await Promise.all([
-    dbGetAll(STORES.transactions),
-    dbGetAll(STORES.imports)
-  ]);
+  const [transactions, imports, settings] = await Promise.all([
+  dbGetAll(STORES.transactions),
+  dbGetAll(STORES.imports),
+  dbGetAll(STORES.settings)
+]);
 
   state.transactions = sortByDateDesc(transactions, (item) => item.dateCompleted);
   state.imports = imports.sort((a, b) => (b.importedAt || '').localeCompare(a.importedAt || ''));
+  const selectedSetting = settings.find((item) => item.key === 'selectedImportId');
+const savedSelectedId = selectedSetting?.value || null;
+
+const exists = imports.some((imp) => imp.id === savedSelectedId);
+state.selectedImportId = exists ? savedSelectedId : null;
 }
 
 function refreshUI() {
@@ -195,7 +201,14 @@ async function handleFileChange(event) {
     );
 
     state.selectedImportId = importMeta.id;
-    state.expandedMerchants = {};
+
+await dbPut(STORES.settings, {
+  key: 'selectedImportId',
+  value: importMeta.id
+});
+
+state.selectedMonthIndex = 0;
+state.expandedMerchants = {};
 
     refreshUI();
     closeImportModal();
@@ -380,20 +393,25 @@ function closeTypeModal() {
 
 async function handleClearData() {
   const ok = await askConfirm(
-  'Clear all data?',
-  'This will delete all imported files and transactions from this app.',
-  'Clear Data'
-);
+    'Clear all data?',
+    'This will delete all imported files, transactions and saved category rules from this app.',
+    'Clear Data'
+  );
+
   if (!ok) return;
 
   try {
     await clearAllAppData();
+
     state.transactions = [];
-state.imports = [];
-state.selectedImportId = null;
-state.selectedMonthIndex = 0;
-state.expandedMerchants = {};
-state.filters = { ...DEFAULT_FILTERS };
+    state.imports = [];
+    state.selectedImportId = null;
+    state.selectedMonthIndex = 0;
+    state.expandedMerchants = {};
+    state.filters = { ...DEFAULT_FILTERS };
+
+    window.__categoryRules = [];
+
     refreshUI();
     closeImportModal();
 
@@ -404,6 +422,7 @@ state.filters = { ...DEFAULT_FILTERS };
     });
   } catch (error) {
     console.error(error);
+
     renderMeta({
       importsCount: state.imports.length,
       txCount: state.transactions.length,
@@ -412,8 +431,12 @@ state.filters = { ...DEFAULT_FILTERS };
   }
 }
 
-function handleSelectImport(importId) {
+async function handleSelectImport(importId) {
   state.selectedImportId = importId;
+  await dbPut(STORES.settings, {
+  key: 'selectedImportId',
+  value: importId
+});
   state.selectedMonthIndex = 0;
   state.expandedMerchants = {};
   refreshUI();
@@ -425,8 +448,12 @@ function handleSelectImport(importId) {
   closeImportModal();
 }
 
-function handleShowAllImports() {
+async function handleShowAllImports() {
   state.selectedImportId = null;
+  await dbPut(STORES.settings, {
+  key: 'selectedImportId',
+  value: null
+});
   state.selectedMonthIndex = 0;
   state.expandedMerchants = {};
   refreshUI();
@@ -450,6 +477,10 @@ async function handleDeleteImport(importId) {
 
     if (state.selectedImportId === importId) {
       state.selectedImportId = null;
+      await dbPut(STORES.settings, {
+  key: 'selectedImportId',
+  value: null
+});
     }
     state.expandedMerchants = {};
 
@@ -521,9 +552,13 @@ async function registerServiceWorker() {
       });
     });
 
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
+    let refreshingAfterUpdate = false;
+
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+  if (refreshingAfterUpdate) return;
+  refreshingAfterUpdate = true;
+  window.location.reload();
+});
   } catch (error) {
     console.error('SW registration failed:', error);
   }
