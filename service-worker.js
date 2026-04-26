@@ -32,16 +32,15 @@ self.addEventListener("install", (event) => {
     (async () => {
       const cache = await caches.open(CACHE);
       await cache.addAll(CORE_ASSETS);
-      await self.skipWaiting();
     })()
   );
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
-
       await Promise.all(
         keys.map((key) => {
           if (key !== CACHE && key !== RUNTIME_CACHE) {
@@ -49,9 +48,9 @@ self.addEventListener("activate", (event) => {
           }
         })
       );
-      await self.clients.claim();
     })()
   );
+  event.waitUntil(clients.claim());
 });
 
 self.addEventListener("fetch", (event) => {
@@ -67,30 +66,26 @@ self.addEventListener("fetch", (event) => {
     url.pathname === "/" ||
     url.pathname === "";
 
+  // 🚀 CRITICAL FIX: navigation requests served from cache FIRST
+  // avoids any HTTP redirect that could break standalone mode
   if (isNavigation) {
     event.respondWith(
       (async () => {
+        const cached = await caches.match("./index.html");
+        if (cached) return cached;
+
+        // fallback (very rare, only if cache was deleted)
         try {
-          const fresh = await fetch("/index.html", {
-            cache: "no-store",
-            redirect: "follow"
-          });
-
-          if (fresh && fresh.status === 200 && fresh.type === "basic") {
+          const fresh = await fetch("./index.html", { cache: "no-store" });
+          if (fresh && fresh.status === 200) {
             const cache = await caches.open(CACHE);
-            await cache.put("./index.html", fresh.clone());
+            cache.put("./index.html", fresh.clone());
+            return fresh;
           }
-
-          return fresh;
-        } catch (error) {
-          return (
-            (await caches.match("./index.html")) ||
-            Response.error()
-          );
-        }
+        } catch (_) {}
+        return Response.error();
       })()
     );
-
     return;
   }
 
@@ -104,49 +99,41 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         try {
           const fresh = await fetch(req);
-
           if (fresh && fresh.status === 200 && fresh.type === "basic") {
             const runtime = await caches.open(RUNTIME_CACHE);
             await runtime.put(req, fresh.clone());
           }
-
           return fresh;
         } catch (error) {
           return caches.match(req);
         }
       })()
     );
-
     return;
   }
 
+  // images, icons, etc.
   event.respondWith(
     (async () => {
       const cached = await caches.match(req);
-
       if (cached) {
         fetch(req)
           .then(async (res) => {
             if (!res || res.status !== 200 || res.type !== "basic") return;
-
             const runtime = await caches.open(RUNTIME_CACHE);
             await runtime.put(req, res.clone());
           })
           .catch(() => {});
-
         return cached;
       }
 
       try {
         const res = await fetch(req);
-
         if (!res || res.status !== 200 || res.type !== "basic") {
           return res;
         }
-
         const runtime = await caches.open(RUNTIME_CACHE);
         await runtime.put(req, res.clone());
-
         return res;
       } catch (error) {
         return caches.match(req);
@@ -157,7 +144,6 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("message", (event) => {
   if (!event.data) return;
-
   if (
     event.data.action === "skipWaiting" ||
     event.data.type === "SKIP_WAITING"
