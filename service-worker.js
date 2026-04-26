@@ -1,33 +1,30 @@
-const CACHE = "revo-stats-shell-v3.1";
-const RUNTIME_CACHE = "revo-stats-runtime-v3.1";
+const CACHE = "revo-stats-shell-v3.3";
+const RUNTIME_CACHE = "revo-stats-runtime-v3.3";
 
 const CORE_ASSETS = [
-  "./index.html",
-  "./manifest.json",
-
-  "./css/01-base.css",
-  "./css/02-layout.css",
-  "./css/03-components.css",
-  "./css/04-modals-responsive.css",
-  "./css/05-effects.css",
-
-  "./js/01-config.js",
-  "./js/02-db.js",
-  "./js/03-utils.js",
-  "./js/04-parser.js",
-  "./js/05-stats.js",
-  "./js/06-render.js",
-  "./js/07-events.js",
-  "./js/08-app.js",
-
-  "./icons/icon-180.png",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-512-maskable.png",
-  "./icons/icon-1024.png"
+  "/index.html",
+  "/manifest.json",
+  "/css/01-base.css",
+  "/css/02-layout.css",
+  "/css/03-components.css",
+  "/css/04-modals-responsive.css",
+  "/css/05-effects.css",
+  "/js/01-config.js",
+  "/js/02-db.js",
+  "/js/03-utils.js",
+  "/js/04-parser.js",
+  "/js/05-stats.js",
+  "/js/06-render.js",
+  "/js/07-events.js",
+  "/js/08-app.js",
+  "/icons/icon-180.png",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/icons/icon-512-maskable.png",
+  "/icons/icon-1024.png"
 ];
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", event => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE);
@@ -37,15 +34,13 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", event => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
       await Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE && key !== RUNTIME_CACHE) {
-            return caches.delete(key);
-          }
+        keys.map(key => {
+          if (key !== CACHE && key !== RUNTIME_CACHE) return caches.delete(key);
         })
       );
     })()
@@ -53,58 +48,47 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(clients.claim());
 });
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  const isNavigation =
-    req.mode === "navigate" ||
-    url.pathname.endsWith(".html") ||
-    url.pathname === "/" ||
-    url.pathname === "";
-
-  // 🚀 CRITICAL FIX: navigation requests served from cache FIRST
-  // avoids any HTTP redirect that could break standalone mode
-  if (isNavigation) {
+  // === NAVIGATION (HTML pages) – only from cache ===
+  if (req.mode === "navigate" || url.pathname === "/" || url.pathname === "") {
     event.respondWith(
       (async () => {
-        const cached = await caches.match("./index.html");
+        const cached = await caches.match("/index.html");
         if (cached) return cached;
 
-        // fallback (very rare, only if cache was deleted)
+        // fallback (should never happen after install)
         try {
-          const fresh = await fetch("./index.html", { cache: "no-store" });
-          if (fresh && fresh.status === 200) {
+          const fresh = await fetch("/index.html", { cache: "no-store" });
+          if (fresh && fresh.ok) {
             const cache = await caches.open(CACHE);
-            cache.put("./index.html", fresh.clone());
+            cache.put("/index.html", fresh.clone());
             return fresh;
           }
-        } catch (_) {}
+        } catch (e) {}
         return Response.error();
       })()
     );
     return;
   }
 
-  const isCodeAsset =
-    url.pathname.endsWith(".js") ||
-    url.pathname.endsWith(".css") ||
-    url.pathname.endsWith(".json");
-
-  if (isCodeAsset) {
+  // === Code assets (JS, CSS, JSON) – network first then cache ===
+  if (/\.(js|css|json)$/.test(url.pathname)) {
     event.respondWith(
       (async () => {
         try {
           const fresh = await fetch(req);
-          if (fresh && fresh.status === 200 && fresh.type === "basic") {
+          if (fresh && fresh.ok && fresh.type === "basic") {
             const runtime = await caches.open(RUNTIME_CACHE);
-            await runtime.put(req, fresh.clone());
+            runtime.put(req, fresh.clone());
           }
           return fresh;
-        } catch (error) {
+        } catch (e) {
           return caches.match(req);
         }
       })()
@@ -112,42 +96,36 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // images, icons, etc.
+  // === Images, icons – cache first with background update ===
   event.respondWith(
     (async () => {
       const cached = await caches.match(req);
       if (cached) {
         fetch(req)
-          .then(async (res) => {
-            if (!res || res.status !== 200 || res.type !== "basic") return;
-            const runtime = await caches.open(RUNTIME_CACHE);
-            await runtime.put(req, res.clone());
+          .then(res => {
+            if (res && res.ok && res.type === "basic") {
+              caches.open(RUNTIME_CACHE).then(c => c.put(req, res));
+            }
           })
           .catch(() => {});
         return cached;
       }
-
       try {
         const res = await fetch(req);
-        if (!res || res.status !== 200 || res.type !== "basic") {
-          return res;
+        if (res && res.ok && res.type === "basic") {
+          const runtime = await caches.open(RUNTIME_CACHE);
+          runtime.put(req, res.clone());
         }
-        const runtime = await caches.open(RUNTIME_CACHE);
-        await runtime.put(req, res.clone());
         return res;
-      } catch (error) {
+      } catch (e) {
         return caches.match(req);
       }
     })()
   );
 });
 
-self.addEventListener("message", (event) => {
-  if (!event.data) return;
-  if (
-    event.data.action === "skipWaiting" ||
-    event.data.type === "SKIP_WAITING"
-  ) {
+self.addEventListener("message", event => {
+  if (event.data && (event.data.action === "skipWaiting" || event.data.type === "SKIP_WAITING")) {
     self.skipWaiting();
   }
 });
