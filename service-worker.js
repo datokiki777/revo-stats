@@ -1,13 +1,16 @@
-const CACHE = "revo-stats-shell-v1.8";
-const RUNTIME_CACHE = "revo-stats-runtime-v1.8";
+const CACHE = "revo-stats-shell-v1.9";
+const RUNTIME_CACHE = "revo-stats-runtime-v1.9";
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
 
-  "./css/01-main.css",
-  "./css/02-effects.css",
+  "./css/01-base.css",
+  "./css/02-layout.css",
+  "./css/03-components.css",
+  "./css/04-modals-responsive.css",
+  "./css/05-effects.css",
 
   "./js/01-config.js",
   "./js/02-db.js",
@@ -45,7 +48,7 @@ self.addEventListener("activate", (event) => {
           }
         })
       );
-      await self.clients.claim();
+    
     })()
   );
 });
