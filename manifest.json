@@ -3,11 +3,10 @@
   "short_name": "RevoStats",
   "description": "CSV statement reader with local stats and analytics",
 
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./index.html?v=4",
+  "scope": "./",
 
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
   "prefer_related_applications": false,
   "orientation": "portrait",
 
