@@ -20,7 +20,10 @@
 </head>
 <body>
 
-  <div id="startupSplash"></div>
+  <!-- 🔥 FIXED SPLASH -->
+  <div id="startupSplash">
+    <div class="splash-logo">Revo Stats</div>
+  </div>
 
   <div class="app">
 
@@ -58,8 +61,8 @@
     </div>
 
     <div id="topToggle" class="top-toggle" aria-label="Toggle import panel">
-  <span class="top-toggle-line"></span>
-</div>
+      <span class="top-toggle-line"></span>
+    </div>
 
     <main class="main">
       <section class="summary-grid">
@@ -127,6 +130,7 @@
     </main>
   </div>
 
+  <!-- MODALS -->
   <div id="importModal" class="modal hidden">
     <div class="modal-backdrop" id="importModalBackdrop"></div>
 
@@ -143,38 +147,38 @@
       <div id="modalImportList" class="modal-import-list"></div>
     </div>
   </div>
-  
+
   <div id="typeModal" class="modal hidden">
-  <div class="modal-backdrop" id="typeModalBackdrop"></div>
+    <div class="modal-backdrop" id="typeModalBackdrop"></div>
 
-  <div class="modal-sheet">
-    <div class="modal-sheet-header">
-      <h3>Select Type</h3>
-      <button id="closeTypeModal" class="modal-close" type="button">✕</button>
-    </div>
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3>Select Type</h3>
+        <button id="closeTypeModal" class="modal-close" type="button">✕</button>
+      </div>
 
-    <div id="typeModalList" class="modal-type-list"></div>
-  </div>
-</div>
-
-<div id="updateModal" class="modal hidden">
-  <div class="modal-backdrop" id="updateModalBackdrop"></div>
-
-  <div class="modal-sheet">
-    <div class="modal-sheet-header">
-      <h3>Update available</h3>
-    </div>
-
-    <div class="muted" style="margin-bottom: 12px;">
-      A new version is ready. Update now?
-    </div>
-
-    <div class="modal-import-actions">
-      <button id="dismissUpdateBtn" class="btn" type="button">Later</button>
-      <button id="applyUpdateBtn" class="btn primary" type="button">Update</button>
+      <div id="typeModalList" class="modal-type-list"></div>
     </div>
   </div>
-</div>
+
+  <div id="updateModal" class="modal hidden">
+    <div class="modal-backdrop" id="updateModalBackdrop"></div>
+
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3>Update available</h3>
+      </div>
+
+      <div class="muted" style="margin-bottom: 12px;">
+        A new version is ready. Update now?
+      </div>
+
+      <div class="modal-import-actions">
+        <button id="dismissUpdateBtn" class="btn" type="button">Later</button>
+        <button id="applyUpdateBtn" class="btn primary" type="button">Update</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="./js/08-app.js"></script>
 </body>
