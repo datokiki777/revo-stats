@@ -2,6 +2,7 @@
   "name": "Revo Stats",
   "short_name": "RevoStats",
   "description": "CSV statement reader with local stats and analytics",
+  "id": "/revo-stats-app",
 
   "start_url": "/",
   "scope": "/",
