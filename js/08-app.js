@@ -285,6 +285,7 @@ function handleMonthNav(direction) {
 }
 
 async function handleChangeType(txId) {
+	const currentMonthIndex = state.selectedMonthIndex;
   const tx = state.transactions.find((item) => item.id === txId);
   if (!tx) return;
 
@@ -325,6 +326,8 @@ async function handleChangeType(txId) {
     window.__categoryRules = window.__categoryRules || [];
     window.__categoryRules.push(rule);
   }
+  
+  state.selectedMonthIndex = currentMonthIndex;
 
   refreshUI();
 
@@ -374,9 +377,9 @@ async function handleChangeMerchant(merchantKey) {
     window.__categoryRules.push(rule);
   }
 
-  state.selectedMonthIndex = 0;
   state.expandedMerchants = {};
-  refreshUI();
+  
+refreshUI();
 
   renderMeta({
     importsCount: state.imports.length,
