@@ -32,6 +32,7 @@ self.addEventListener("install", (event) => {
     (async () => {
       const cache = await caches.open(CACHE);
       await cache.addAll(CORE_ASSETS);
+      await self.skipWaiting();
     })()
   );
 });
@@ -48,6 +49,7 @@ self.addEventListener("activate", (event) => {
           }
         })
       );
+      await self.clients.claim();
     })()
   );
 });
@@ -69,7 +71,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       (async () => {
         try {
-          const fresh = await fetch("./index.html", {
+          const fresh = await fetch("/index.html", {
             cache: "no-store",
             redirect: "follow"
           });
