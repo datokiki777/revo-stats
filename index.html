@@ -12,35 +12,34 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icons/icon-192.png" />
 
-  <link rel="stylesheet" href="./css/01-main.css" />
-  <link rel="stylesheet" href="./css/02-effects.css" />
+  <link rel="stylesheet" href="./css/01-base.css" />
+  <link rel="stylesheet" href="./css/02-layout.css" />
+  <link rel="stylesheet" href="./css/03-components.css" />
+  <link rel="stylesheet" href="./css/04-modals-responsive.css" />
+  <link rel="stylesheet" href="./css/05-effects.css" />
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
-      <div>
-        <h1>Revo Stats</h1>
-        <p class="subtitle">CSV statement reader</p>
-      </div>
 
-      <div class="topbar-actions">
-        <button id="importBtn" class="btn primary" type="button">
-  Import CSV
-</button>
+    <div id="topSection" class="collapsed">
+      <header class="topbar">
+        <div class="topbar-actions">
+          <button id="importBtn" class="btn primary" type="button">
+            Import CSV
+          </button>
 
-<input id="fileInput" type="file" accept=".csv,text/csv" hidden />
+          <input id="fileInput" type="file" accept=".csv,text/csv" hidden />
 
-        <button id="clearDbBtn" class="btn danger" type="button">
-          Clear Data
-        </button>
+          <button id="clearDbBtn" class="btn danger" type="button">
+            Clear Data
+          </button>
 
-        <button id="selectImportBtn" class="btn" type="button">
-          Select File
-        </button>
-      </div>
-    </header>
+          <button id="selectImportBtn" class="btn" type="button">
+            Select File
+          </button>
+        </div>
+      </header>
 
-    <main class="main">
       <section class="panel import-panel">
         <div class="panel-head">
           <h2>Import</h2>
@@ -53,7 +52,13 @@
           <div><strong>Selected file:</strong> <span id="selectedImportName">All imports</span></div>
         </div>
       </section>
+    </div>
 
+    <div id="topToggle" class="top-toggle" aria-label="Toggle import panel">
+  <span class="top-toggle-line"></span>
+</div>
+
+    <main class="main">
       <section class="summary-grid">
         <article class="card stat-card">
           <div class="label">Income</div>
@@ -90,9 +95,9 @@
           />
 
           <button id="typeFilterBtn" class="input input-btn" type="button">
-  <span>Type:</span>
-  <strong id="typeFilterLabel">All types</strong>
-</button>
+            <span>Type:</span>
+            <strong id="typeFilterLabel">All types</strong>
+          </button>
         </div>
       </section>
 

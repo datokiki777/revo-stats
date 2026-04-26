@@ -1,105 +1,50 @@
-01-main.css
+01-base.css
 ═══════════════════════════════════════
-- Base layout:
-  - body, app, panels
-- Topbar:
-  - .topbar
-  - .topbar-actions
-- Buttons:
-  - .btn
-  - .btn.primary
-  - .btn.danger
+- Theme variables
+- Reset
+- body / html
+- Basic font setup
 
-- Summary:
-  - .summary-grid
-  - .stat-card
-
-- Filters:
-  - .filters-row
-  - .input
-  - .input-btn
-
-- Monthly stats:
-  - .monthly-list
-  - .monthly-slider
-  - .month-card
-  - .month-card-single
-  - .month-top
-  - .month-nav-btn
-  - .month-title
-  - .month-meta
-  - .month-lines
-  - .month-line
-  - .month-amount
-  - .month-amount.income
-  - .month-amount.expense
-  - .month-amount.net
-  - .month-amount.fee
-
-- Transactions:
-  - .merchant-card
-  - .merchant-summary
-  - .merchant-summary-left
-  - .merchant-summary-right
-  - .merchant-name
-  - .merchant-sub
-  - .merchant-total
-  - .merchant-arrow
-  - .merchant-children
-  - .merchant-change-btn
-  - .change-type-btn
-  - .tx-row (child rows)
-  - .tx-left / .tx-right
-  - .tx-desc / .tx-sub
-  - .tx-fee
-  - .badge
-
-- Import modal:
-  - .modal
-  - .modal-backdrop
-  - .modal-sheet
-  - .modal-import-list
-  - .modal-import-card
-  - .import-btn
-
-- Type modal:
-  - .modal-type-list
-  - .type-option
-
-- Confirm modal:
-  - .confirm-sheet
-  - .confirm-message
-  - .confirm-actions
-
-- Category modal:
-  - .category-sheet
-  - .category-options
-  - .category-option
-  - .remember-row
-
-- Compact layout:
-  - compact cards
-  - smaller stat cards
-  - smaller monthly card
-  - smaller transaction cards
-
-- Responsive:
-  - @media (max-width: 900px)
-
-02-effects.css
+02-layout.css
 ═══════════════════════════════════════
-- Transitions
-- Hover effects
-- Active states
+- app layout
+- topbar
+- main grid
+- panels
+- summary grid
+- filters layout
+
+03-components.css
+═══════════════════════════════════════
+- buttons
+- inputs
+- stat cards
+- monthly card / slider
+- transactions
+- merchant cards
+- badges
+- top collapse handle
+- compact card sizes
+
+04-modals-responsive.css
+═══════════════════════════════════════
+- all modals
+- import modal
+- type modal
+- confirm modal
+- category modal
+- responsive mobile styles
+
+05-effects.css
+═══════════════════════════════════════
+- transitions
+- hover effects
+- active states
 
 CHANGE GUIDE
 ═══════════════════════════════════════
-Buttons → .btn
-Stats → .stat-card
-Monthly → .month-card-single / .month-line
-Transactions → .merchant-card / .merchant-summary / .tx-row
-Merchant header → .merchant-summary-left / .merchant-summary-right
-Category change → .merchant-change-btn / .category-sheet
-Modals → .modal / .modal-sheet
-Filters → .filters-row / .input
-Mobile → @media
+Theme/base → 01-base.css
+Layout/panels → 02-layout.css
+Cards/transactions/monthly → 03-components.css
+Modals/mobile → 04-modals-responsive.css
+Animations/effects → 05-effects.css
