@@ -47,3 +47,28 @@ select {
   color: var(--muted);
   font-size: 13px;
 }
+
+#startupSplash {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #071633;
+  transition: opacity 0.22s ease;
+}
+
+#startupSplash.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 🔥 SPLASH LOGO */
+.splash-logo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+}
