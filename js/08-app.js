@@ -75,6 +75,7 @@ window.__categoryRules = rules || [];
       txCount: state.transactions.length,
       statusText: 'Ready'
     });
+    hideStartupSplash();
   } catch (error) {
     console.error(error);
     renderMeta({
@@ -82,6 +83,7 @@ window.__categoryRules = rules || [];
       txCount: 0,
       statusText: 'Init failed'
     });
+    hideStartupSplash();
   }
 }
 
@@ -554,9 +556,6 @@ async function registerServiceWorker() {
       });
     });
 
-    let refreshingAfterUpdate = false;
-let userTriggeredUpdate = false;
-
 navigator.serviceWorker.addEventListener('controllerchange', () => {
   const userUpdate = sessionStorage.getItem('revoStatsUserUpdate') === '1';
 
@@ -726,6 +725,17 @@ function initTopToggle() {
 
     lastScrollY = currentY;
   }, { passive: true });
+}
+
+function hideStartupSplash() {
+  const splash = document.getElementById('startupSplash');
+  if (!splash) return;
+
+  splash.classList.add('hide');
+
+  setTimeout(() => {
+    splash.remove();
+  }, 260);
 }
 
 initApp();
