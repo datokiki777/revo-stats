@@ -19,12 +19,35 @@
   - .input
   - .input-btn
 
+- Monthly stats:
+  - .monthly-list
+  - .monthly-slider
+  - .month-card
+  - .month-card-single
+  - .month-top
+  - .month-nav-btn
+  - .month-title
+  - .month-meta
+  - .month-lines
+  - .month-line
+  - .month-amount
+  - .month-amount.income
+  - .month-amount.expense
+  - .month-amount.net
+  - .month-amount.fee
+
 - Transactions:
   - .merchant-card
   - .merchant-summary
+  - .merchant-summary-left
+  - .merchant-summary-right
   - .merchant-name
+  - .merchant-sub
   - .merchant-total
+  - .merchant-arrow
   - .merchant-children
+  - .merchant-change-btn
+  - .change-type-btn
   - .tx-row (child rows)
   - .tx-left / .tx-right
   - .tx-desc / .tx-sub
@@ -43,6 +66,23 @@
   - .modal-type-list
   - .type-option
 
+- Confirm modal:
+  - .confirm-sheet
+  - .confirm-message
+  - .confirm-actions
+
+- Category modal:
+  - .category-sheet
+  - .category-options
+  - .category-option
+  - .remember-row
+
+- Compact layout:
+  - compact cards
+  - smaller stat cards
+  - smaller monthly card
+  - smaller transaction cards
+
 - Responsive:
   - @media (max-width: 900px)
 
@@ -56,7 +96,10 @@ CHANGE GUIDE
 ═══════════════════════════════════════
 Buttons → .btn
 Stats → .stat-card
-Transactions → .merchant-card / .tx-row
+Monthly → .month-card-single / .month-line
+Transactions → .merchant-card / .merchant-summary / .tx-row
+Merchant header → .merchant-summary-left / .merchant-summary-right
+Category change → .merchant-change-btn / .category-sheet
 Modals → .modal / .modal-sheet
 Filters → .filters-row / .input
 Mobile → @media
