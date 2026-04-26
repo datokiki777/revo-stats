@@ -26,6 +26,19 @@ export function bindEvents(handlers) {
     const deleteBtn = event.target.closest('[data-delete-import]');
     const typeBtn = event.target.closest('[data-type-option]');
     const merchantBtn = event.target.closest('[data-merchant-toggle]');
+    const monthNavBtn = event.target.closest('[data-month-nav]');
+    const changeTypeBtn = event.target.closest('[data-change-type]');
+    const changeMerchantBtn = event.target.closest('[data-change-merchant]');
+    
+    if (changeTypeBtn) {
+  handlers.onChangeType?.(changeTypeBtn.getAttribute('data-change-type'));
+  return;
+}
+
+    if (changeMerchantBtn) {
+  handlers.onChangeMerchant?.(changeMerchantBtn.getAttribute('data-change-merchant'));
+  return;
+}
 
     if (selectBtn) {
       handlers.onSelectImport?.(selectBtn.getAttribute('data-select-import'));
@@ -41,6 +54,11 @@ export function bindEvents(handlers) {
       handlers.onTypeSelect?.(typeBtn.getAttribute('data-type-option'));
       return;
     }
+    
+    if (monthNavBtn) {
+  handlers.onMonthNav?.(monthNavBtn.getAttribute('data-month-nav'));
+  return;
+}
 
     if (merchantBtn) {
       handlers.onMerchantToggle?.(merchantBtn.getAttribute('data-merchant-toggle'));

@@ -1,4 +1,5 @@
 import { uid, safeNumber, monthKeyFromDate } from './03-utils.js';
+import { dbGetAll } from './02-db.js';
 
 export function readFileText(file) {
   return file.text();
@@ -93,9 +94,17 @@ const completedDate = normalizeDate(
     const fee = safeNumber(row['Fee']);
     const balance = safeNumber(row['Balance']);
     
+    const rules = window.__categoryRules || [];
+
+for (const rule of rules) {
+  if (text.includes(rule.key)) {
+    return rule.category;
+  }
+}
+    
     const category = detectCategory(description, type, amount, fee);
 
-    return {
+    const tx = {
   id: uid('tx'),
   importId,
   type,
@@ -112,6 +121,10 @@ const completedDate = normalizeDate(
   direction: amount >= 0 ? 'income' : 'expense',
   raw: row
 };
+
+tx.fingerprint = buildSmartFingerprint(tx);
+
+return tx;
   });
 }
 
@@ -148,10 +161,58 @@ export function buildImportMeta(fileName, transactions) {
 function detectCategory(description, type, amount, fee) {
   const text = `${description} ${type}`.toLowerCase();
 
+  // 1. Fees (ყველაზე მაღალი პრიორიტეტი)
   if (fee > 0 || text.includes('fee')) {
     return 'Fees';
   }
 
+  // 2. Transfers
+  if (
+    text.includes('transfer') ||
+    text.includes('bank transfer') ||
+    text.includes('card to card') ||
+    text.includes('revolut') ||
+    text.includes('iban')
+  ) {
+    return 'Transfers';
+  }
+
+  // 3. Cash
+  if (
+    text.includes('atm') ||
+    text.includes('cash withdrawal') ||
+    text.includes('cash')
+  ) {
+    return 'Cash';
+  }
+
+  // 4. Tickets / Public transport
+  if (
+    text.includes('deutsche bahn') ||
+    text.includes(' db ') ||
+    text.includes('bahn') ||
+    text.includes('vrr') ||
+    text.includes('ruhrbahn') ||
+    text.includes('ticket') ||
+    text.includes('bus') ||
+    text.includes('tram')
+  ) {
+    return 'Tickets';
+  }
+
+  // 5. Transport (car, taxi)
+  if (
+    text.includes('uber') ||
+    text.includes('bolt') ||
+    text.includes('taxi') ||
+    text.includes('shell') ||
+    text.includes('aral') ||
+    text.includes('esso')
+  ) {
+    return 'Transport';
+  }
+
+  // 6. Food (EATS აქ უნდა წავიდეს!)
   if (
     text.includes('aldi') ||
     text.includes('lidl') ||
@@ -168,35 +229,13 @@ function detectCategory(description, type, amount, fee) {
     text.includes('mcdonald') ||
     text.includes('subway') ||
     text.includes('cafe') ||
-    text.includes('bakery')
+    text.includes('bakery') ||
+    text.includes('eat') // Uber Eats catch
   ) {
     return 'Food';
   }
 
-  if (
-    text.includes('db') ||
-    text.includes('deutsche bahn') ||
-    text.includes('bahn') ||
-    text.includes('vrr') ||
-    text.includes('ruhrbahn') ||
-    text.includes('ticket') ||
-    text.includes('bus') ||
-    text.includes('tram')
-  ) {
-    return 'Tickets';
-  }
-
-  if (
-    text.includes('uber') ||
-    text.includes('bolt') ||
-    text.includes('taxi') ||
-    text.includes('shell') ||
-    text.includes('aral') ||
-    text.includes('esso')
-  ) {
-    return 'Transport';
-  }
-
+  // 7. Shopping
   if (
     text.includes('amazon') ||
     text.includes('ebay') ||
@@ -210,20 +249,25 @@ function detectCategory(description, type, amount, fee) {
     return 'Shopping';
   }
 
-  if (
-    text.includes('transfer') ||
-    text.includes('bank transfer') ||
-    text.includes('card to card')
-  ) {
-    return 'Transfers';
-  }
-
-  if (
-    text.includes('cash') ||
-    text.includes('atm')
-  ) {
-    return 'Cash';
-  }
-
   return 'Other';
+}
+export function buildSmartFingerprint(tx) {
+  const dateKey = String(tx.dateCompleted || '').slice(0, 10);
+  const amountKey = Number(tx.amount || 0).toFixed(2);
+  const currencyKey = String(tx.currency || 'EUR').trim().toUpperCase();
+  const typeKey = String(tx.type || '').trim().toLowerCase();
+
+  const descKey = String(tx.description || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[^\p{L}\p{N}\s]/gu, '');
+
+  return [
+    dateKey,
+    amountKey,
+    currencyKey,
+    typeKey,
+    descKey
+  ].join('|');
 }

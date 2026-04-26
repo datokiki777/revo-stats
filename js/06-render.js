@@ -8,7 +8,7 @@ export function renderSummary(stats) {
   document.getElementById('feeValue').textContent = formatMoney(stats.fees);
 }
 
-export function renderMonthlyStats(months) {
+export function renderMonthlyStats(months, selectedMonthIndex = 0) {
   const root = document.getElementById('monthlyStats');
 
   if (!months.length) {
@@ -17,22 +17,48 @@ export function renderMonthlyStats(months) {
     return;
   }
 
-  root.className = 'monthly-list';
-  root.innerHTML = months
-    .map((item) => {
-      return `
-        <article class="month-card">
-          <div>
-            <div class="month-title">${escapeHtml(item.monthKey)}</div>
-            <div class="month-meta">${item.count} transactions</div>
-          </div>
-          <div><strong>Income:</strong> ${formatMoney(item.income)}</div>
-          <div><strong>Expenses:</strong> ${formatMoney(item.expenses)}</div>
-          <div><strong>Fees:</strong> ${formatMoney(item.fees)}</div>
-        </article>
-      `;
-    })
-    .join('');
+  const index = Math.max(0, Math.min(selectedMonthIndex, months.length - 1));
+  const item = months[index];
+  const net = Number(item.income || 0) - Number(item.expenses || 0);
+  const monthLabel = formatMonthLabel(item.monthKey);
+
+  root.className = 'monthly-list monthly-slider';
+  root.innerHTML = `
+    <article class="month-card month-card-single">
+      <div class="month-top">
+        <button class="month-nav-btn" type="button" data-month-nav="prev">‹</button>
+
+        <div class="month-head-center">
+          <div class="month-title">${escapeHtml(monthLabel)}</div>
+          <div class="month-meta">${item.count} transactions • ${index + 1}/${months.length}</div>
+        </div>
+
+        <button class="month-nav-btn" type="button" data-month-nav="next">›</button>
+      </div>
+
+      <div class="month-lines">
+        <div class="month-line">
+          <span>Income</span>
+          <strong class="month-amount income">${formatMoney(item.income)}</strong>
+        </div>
+
+        <div class="month-line">
+          <span>Expenses</span>
+          <strong class="month-amount expense">${formatMoney(item.expenses)}</strong>
+        </div>
+
+        <div class="month-line">
+          <span>Net</span>
+          <strong class="month-amount net">${formatMoney(net)}</strong>
+        </div>
+
+        <div class="month-line">
+          <span>Fees</span>
+          <strong class="month-amount fee">${formatMoney(item.fees)}</strong>
+        </div>
+      </div>
+    </article>
+  `;
 }
 
 export function renderTransactions(transactions, expandedMerchants = {}) {
@@ -54,12 +80,11 @@ export function renderTransactions(transactions, expandedMerchants = {}) {
 
     return `
       <article class="merchant-card">
-        <button
-          class="merchant-summary"
-          type="button"
-          data-merchant-toggle="${escapeHtml(group.key)}"
-        >
-          <div class="merchant-summary-left">
+        <div class="merchant-summary">
+          <div
+  class="merchant-summary-left"
+  data-merchant-toggle="${escapeHtml(group.key)}"
+>
             <div class="merchant-name">${escapeHtml(group.name)}</div>
             <div class="merchant-sub">
               ${group.count} transactions • Last: ${escapeHtml(formatDate(group.lastDate))}
@@ -67,13 +92,22 @@ export function renderTransactions(transactions, expandedMerchants = {}) {
           </div>
 
           <div class="merchant-summary-right">
-            <div class="merchant-total ${totalClass}">
-              ${formatMoney(group.total, group.currency || 'EUR')}
-            </div>
-            <div class="merchant-arrow ${isOpen ? 'open' : ''}">
-              ${isOpen ? '▲' : '▼'}
-            </div>
-          </div>
+  <button
+    class="change-type-btn merchant-change-btn"
+    type="button"
+    data-change-merchant="${escapeHtml(group.key)}"
+  >
+    Change
+  </button>
+
+  <div class="merchant-total ${totalClass}">
+    ${formatMoney(group.total, group.currency || 'EUR')}
+  </div>
+
+  <div class="merchant-arrow ${isOpen ? 'open' : ''}">
+    ${isOpen ? '▲' : '▼'}
+  </div>
+</div>
         </button>
 
         <div class="merchant-children ${isOpen ? 'open' : ''}">
@@ -91,8 +125,9 @@ export function renderTransactions(transactions, expandedMerchants = {}) {
                       ${escapeHtml(formatDate(tx.dateCompleted))} • ${escapeHtml(tx.type || 'Unknown type')}
                     </div>
                     <div class="tx-meta-line">
-                      <span class="badge">${escapeHtml(tx.currency || '—')}</span>
-                      <span class="badge">${escapeHtml(tx.state || '—')}</span>
+  <span class="badge">${escapeHtml(tx.currency || '—')}</span>
+  <span class="badge">${escapeHtml(tx.state || '—')}</span>
+  <span class="badge">${escapeHtml(tx.category || 'Other')}</span>
                     </div>
                   </div>
                 </div>
@@ -307,4 +342,24 @@ export function renderTypeModal(selectedType) {
       </button>
     `;
   }).join('');
+}
+
+function formatMonthLabel(monthKey) {
+  const months = {
+    '01': 'January',
+    '02': 'February',
+    '03': 'March',
+    '04': 'April',
+    '05': 'May',
+    '06': 'June',
+    '07': 'July',
+    '08': 'August',
+    '09': 'September',
+    '10': 'October',
+    '11': 'November',
+    '12': 'December'
+  };
+
+  const [year, month] = String(monthKey || '').split('-');
+  return `${months[month] || monthKey} ${year || ''}`.trim();
 }

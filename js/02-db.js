@@ -18,6 +18,10 @@ export function openDB() {
         txStore.createIndex('type', 'type', { unique: false });
         txStore.createIndex('currency', 'currency', { unique: false });
       }
+      
+      if (!db.objectStoreNames.contains('rules')) {
+  db.createObjectStore('rules', { keyPath: 'key' });
+}
 
       if (!db.objectStoreNames.contains(STORES.imports)) {
         const importStore = db.createObjectStore(STORES.imports, { keyPath: 'id' });

@@ -8,7 +8,7 @@ import {
   dbDelete,
   dbDeleteByIndex
 } from './02-db.js';
-import { readFileText, parseCSV, normalizeTransactions, buildImportMeta } from './04-parser.js';
+import { readFileText, parseCSV, normalizeTransactions, buildImportMeta, buildSmartFingerprint } from './04-parser.js';
 import {
   calcOverviewStats,
   calcMonthlyStats,
@@ -31,6 +31,7 @@ const state = {
   transactions: [],
   imports: [],
   selectedImportId: null,
+  selectedMonthIndex: 0,
   expandedMerchants: {},
   filters: { ...DEFAULT_FILTERS },
   updateWorker: null,
@@ -41,6 +42,8 @@ async function initApp() {
   try {
     await openDB();
     await loadStateFromDB();
+    const rules = await dbGetAll('rules');
+window.__categoryRules = rules || [];
     refreshUI();
 
     bindEvents({
@@ -56,6 +59,9 @@ async function initApp() {
   onCloseTypeModal: closeTypeModal,
   onTypeSelect: handleTypeSelect,
   onMerchantToggle: handleMerchantToggle,
+  onMonthNav: handleMonthNav,
+  onChangeType: handleChangeType,
+  onChangeMerchant: handleChangeMerchant,
   onDismissUpdate: dismissUpdateModal,
       onApplyUpdate: applyAppUpdate
 });
@@ -100,9 +106,18 @@ function refreshUI() {
 const summary = calcOverviewStats(filtered);
 const months = calcMonthlyStats(filtered);
 
+if (state.selectedMonthIndex > months.length - 1) {
+  state.selectedMonthIndex = 0;
+}
+
+const selectedMonth = months[state.selectedMonthIndex];
+const monthTransactions = selectedMonth
+  ? filtered.filter((tx) => tx.monthKey === selectedMonth.monthKey)
+  : filtered;
+
 renderSummary(summary);
-renderMonthlyStats(months);
-renderTransactions(filtered, state.expandedMerchants);
+renderMonthlyStats(months, state.selectedMonthIndex);
+renderTransactions(monthTransactions, state.expandedMerchants);
 renderImportModal(state.imports, state.selectedImportId);
 renderSelectedImportLabel(state.imports, state.selectedImportId);
 renderTypeFilterLabel(state.filters.type);
@@ -135,7 +150,27 @@ async function handleFileChange(event) {
     const rawRows = parseCSV(text);
 
     const importMeta = buildImportMeta(file.name, []);
-    const transactions = normalizeTransactions(rawRows, importMeta.id);
+    const parsedTransactions = normalizeTransactions(rawRows, importMeta.id);
+
+    const existingFingerprints = new Set(
+      state.transactions.map((tx) => tx.fingerprint || buildSmartFingerprint(tx))
+    );
+
+    const transactions = [];
+    let skippedDuplicates = 0;
+
+    for (const tx of parsedTransactions) {
+      const fingerprint = tx.fingerprint || buildSmartFingerprint(tx);
+
+      if (existingFingerprints.has(fingerprint)) {
+        skippedDuplicates += 1;
+        continue;
+      }
+
+      tx.fingerprint = fingerprint;
+      existingFingerprints.add(fingerprint);
+      transactions.push(tx);
+    }
 
     importMeta.rowCount = transactions.length;
     importMeta.currencies = [...new Set(transactions.map((tx) => tx.currency).filter(Boolean))];
@@ -166,7 +201,7 @@ async function handleFileChange(event) {
     renderMeta({
       importsCount: state.imports.length,
       txCount: state.transactions.length,
-      statusText: `Imported ${transactions.length} rows`
+      statusText: `Imported ${transactions.length} rows • ${skippedDuplicates} duplicates skipped`
     });
   } catch (error) {
     console.error(error);
@@ -182,11 +217,15 @@ async function handleFileChange(event) {
 
 function handleSearchInput(event) {
   state.filters.search = event.target.value || '';
+  state.selectedMonthIndex = 0;
+  state.expandedMerchants = {};
   refreshUI();
 }
 
 function handleTypeSelect(typeValue) {
   state.filters.type = typeValue || 'all';
+  state.selectedMonthIndex = 0;
+  state.expandedMerchants = {};
   refreshUI();
   closeTypeModal();
 }
@@ -194,6 +233,139 @@ function handleTypeSelect(typeValue) {
 function handleMerchantToggle(merchantKey) {
   state.expandedMerchants[merchantKey] = !state.expandedMerchants[merchantKey];
   refreshUI();
+}
+
+function handleMonthNav(direction) {
+  let baseTransactions = state.transactions;
+
+  if (state.selectedImportId) {
+    baseTransactions = baseTransactions.filter(
+      (tx) => tx.importId === state.selectedImportId
+    );
+  }
+
+  const filtered = applyFilters(baseTransactions, state.filters);
+  const months = calcMonthlyStats(filtered);
+
+  if (!months.length) return;
+
+  if (direction === 'next') {
+  state.selectedMonthIndex -= 1;
+} else {
+  state.selectedMonthIndex += 1;
+}
+
+  if (state.selectedMonthIndex < 0) {
+    state.selectedMonthIndex = months.length - 1;
+  }
+
+  if (state.selectedMonthIndex > months.length - 1) {
+    state.selectedMonthIndex = 0;
+  }
+
+  state.expandedMerchants = {};
+  refreshUI();
+}
+
+async function handleChangeType(txId) {
+  const tx = state.transactions.find((item) => item.id === txId);
+  if (!tx) return;
+
+  const newCategory = window.prompt(
+    'Enter category: Food, Tickets, Transport, Shopping, Transfers, Cash, Fees, Other',
+    tx.category || 'Other'
+  );
+
+  if (!newCategory) return;
+
+  const category = newCategory.trim();
+  const remember = window.confirm('Remember this merchant for future imports?');
+
+  const key = String(tx.description || '').trim().toLowerCase();
+  if (!key) return;
+
+  let changedCount = 0;
+
+  for (const item of state.transactions) {
+    const desc = String(item.description || '').trim().toLowerCase();
+
+    if (desc.includes(key) || key.includes(desc)) {
+      item.category = category;
+      changedCount += 1;
+    }
+  }
+
+  await dbBulkPut(STORES.transactions, state.transactions);
+
+  if (remember) {
+    const rule = {
+      key,
+      category
+    };
+
+    await dbPut('rules', rule);
+
+    window.__categoryRules = window.__categoryRules || [];
+    window.__categoryRules.push(rule);
+  }
+
+  refreshUI();
+
+  renderMeta({
+    importsCount: state.imports.length,
+    txCount: state.transactions.length,
+    statusText: `Updated ${changedCount} transactions to ${category}`
+  });
+}
+
+async function handleChangeMerchant(merchantKey) {
+  const matching = state.transactions.filter((tx) => {
+    const desc = String(tx.description || '').trim().toLowerCase();
+    return desc === merchantKey || desc.includes(merchantKey);
+  });
+
+  if (!matching.length) return;
+
+  const currentCategory = matching[0].category || 'Other';
+  const result = await askCategoryPicker(currentCategory);
+
+  if (!result) return;
+
+  const { category, remember } = result;
+  let changedCount = 0;
+
+  for (const tx of state.transactions) {
+    const desc = String(tx.description || '').trim().toLowerCase();
+
+    if (desc === merchantKey || desc.includes(merchantKey)) {
+      tx.category = category;
+      changedCount += 1;
+    }
+  }
+
+  await dbBulkPut(STORES.transactions, state.transactions);
+
+  if (remember) {
+    const rule = {
+      key: merchantKey,
+      category
+    };
+
+    await dbPut('rules', rule);
+
+    window.__categoryRules = window.__categoryRules || [];
+    window.__categoryRules.push(rule);
+  }
+
+  state.selectedMonthIndex = 0;
+  state.expandedMerchants = {};
+  refreshUI();
+
+  renderMeta({
+    importsCount: state.imports.length,
+    txCount: state.transactions.length,
+    statusText: `Updated ${changedCount} transactions to ${category}`
+  });
 }
 
 function openTypeModal() {
@@ -205,7 +377,11 @@ function closeTypeModal() {
 }
 
 async function handleClearData() {
-  const ok = window.confirm('Clear all imported data?');
+  const ok = await askConfirm(
+  'Clear all data?',
+  'This will delete all imported files and transactions from this app.',
+  'Clear Data'
+);
   if (!ok) return;
 
   try {
@@ -213,6 +389,7 @@ async function handleClearData() {
     state.transactions = [];
 state.imports = [];
 state.selectedImportId = null;
+state.selectedMonthIndex = 0;
 state.expandedMerchants = {};
 state.filters = { ...DEFAULT_FILTERS };
     refreshUI();
@@ -235,6 +412,7 @@ state.filters = { ...DEFAULT_FILTERS };
 
 function handleSelectImport(importId) {
   state.selectedImportId = importId;
+  state.selectedMonthIndex = 0;
   state.expandedMerchants = {};
   refreshUI();
   renderMeta({
@@ -247,13 +425,18 @@ function handleSelectImport(importId) {
 
 function handleShowAllImports() {
   state.selectedImportId = null;
+  state.selectedMonthIndex = 0;
   state.expandedMerchants = {};
   refreshUI();
   closeImportModal();
 }
 
 async function handleDeleteImport(importId) {
-  const ok = window.confirm('Delete this import and its transactions?');
+  const ok = await askConfirm(
+  'Delete this file?',
+  'This will delete this import and all transactions from it.',
+  'Delete'
+);
   if (!ok) return;
 
   try {
@@ -342,6 +525,117 @@ async function registerServiceWorker() {
   } catch (error) {
     console.error('SW registration failed:', error);
   }
+}
+
+function askConfirm(title, message, confirmText = 'Delete') {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+
+    modal.innerHTML = `
+      <div class="modal-backdrop"></div>
+      <div class="modal-sheet confirm-sheet">
+        <div class="modal-sheet-header">
+          <h3>${title}</h3>
+          <button class="modal-close" type="button" data-confirm-cancel>✕</button>
+        </div>
+
+        <p class="confirm-message">${message}</p>
+
+        <div class="confirm-actions">
+          <button class="btn" type="button" data-confirm-cancel>Cancel</button>
+          <button class="btn danger" type="button" data-confirm-ok>${confirmText}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelectorAll('[data-confirm-cancel]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        modal.remove();
+        resolve(false);
+      });
+    });
+
+    modal.querySelector('[data-confirm-ok]').addEventListener('click', () => {
+      modal.remove();
+      resolve(true);
+    });
+
+    modal.querySelector('.modal-backdrop').addEventListener('click', () => {
+      modal.remove();
+      resolve(false);
+    });
+  });
+}
+
+function askCategoryPicker(currentCategory = 'Other') {
+  return new Promise((resolve) => {
+    const categories = [
+      'Food',
+      'Tickets',
+      'Transport',
+      'Shopping',
+      'Transfers',
+      'Cash',
+      'Fees',
+      'Other'
+    ];
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+
+    modal.innerHTML = `
+      <div class="modal-backdrop"></div>
+      <div class="modal-sheet category-sheet">
+        <div class="modal-sheet-header">
+          <h3>Change category</h3>
+          <button class="modal-close" type="button" data-category-cancel>✕</button>
+        </div>
+
+        <div class="category-options">
+          ${categories.map((cat) => `
+            <button
+              class="category-option ${cat === currentCategory ? 'active' : ''}"
+              type="button"
+              data-category-value="${cat}"
+            >
+              ${cat}
+            </button>
+          `).join('')}
+        </div>
+
+        <div class="remember-row">
+          <label>
+            <input type="checkbox" data-category-remember checked>
+            Remember this merchant for future imports
+          </label>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const close = (value) => {
+      modal.remove();
+      resolve(value);
+    };
+
+    modal.querySelectorAll('[data-category-cancel]').forEach((btn) => {
+      btn.addEventListener('click', () => close(null));
+    });
+
+    modal.querySelector('.modal-backdrop').addEventListener('click', () => close(null));
+
+    modal.querySelectorAll('[data-category-value]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const category = btn.getAttribute('data-category-value');
+        const remember = modal.querySelector('[data-category-remember]')?.checked;
+        close({ category, remember });
+      });
+    });
+  });
 }
 
 initApp();
