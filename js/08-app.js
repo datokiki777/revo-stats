@@ -556,14 +556,6 @@ async function registerServiceWorker() {
       });
     });
 
-navigator.serviceWorker.addEventListener('controllerchange', () => {
-  const userUpdate = sessionStorage.getItem('revoStatsUserUpdate') === '1';
-
-  if (!userUpdate) return;
-
-  sessionStorage.removeItem('revoStatsUserUpdate');
-  window.location.reload();
-});
   } catch (error) {
     console.error('SW registration failed:', error);
   }
