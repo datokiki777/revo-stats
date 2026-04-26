@@ -726,8 +726,13 @@ function hideStartupSplash() {
   splash.classList.add('hide');
 
   setTimeout(() => {
+  splash.classList.add('hide');
+
+  setTimeout(() => {
     splash.remove();
-  }, 260);
+  }, 300);
+
+}, 900);
 }
 
 initApp();
