@@ -1,5 +1,5 @@
-const CACHE = "revo-stats-shell-v2.2";
-const RUNTIME_CACHE = "revo-stats-runtime-v2.2";
+const CACHE = "revo-stats-shell-v2.1";
+const RUNTIME_CACHE = "revo-stats-runtime-v2.1";
 
 const CORE_ASSETS = [
   "./",
@@ -41,6 +41,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
+
       await Promise.all(
         keys.map((key) => {
           if (key !== CACHE && key !== RUNTIME_CACHE) {
@@ -48,7 +49,6 @@ self.addEventListener("activate", (event) => {
           }
         })
       );
-    
     })()
   );
 });
@@ -85,6 +85,7 @@ self.addEventListener("fetch", (event) => {
         return cached || fetch(req);
       })()
     );
+
     return;
   }
 
@@ -98,16 +99,19 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         try {
           const fresh = await fetch(req);
+
           if (fresh && fresh.status === 200 && fresh.type === "basic") {
             const runtime = await caches.open(RUNTIME_CACHE);
-            runtime.put(req, fresh.clone());
+            await runtime.put(req, fresh.clone());
           }
+
           return fresh;
         } catch (error) {
           return caches.match(req);
         }
       })()
     );
+
     return;
   }
 
@@ -119,18 +123,25 @@ self.addEventListener("fetch", (event) => {
         fetch(req)
           .then(async (res) => {
             if (!res || res.status !== 200 || res.type !== "basic") return;
+
             const runtime = await caches.open(RUNTIME_CACHE);
-            runtime.put(req, res.clone());
+            await runtime.put(req, res.clone());
           })
           .catch(() => {});
+
         return cached;
       }
 
       try {
         const res = await fetch(req);
-        if (!res || res.status !== 200 || res.type !== "basic") return res;
+
+        if (!res || res.status !== 200 || res.type !== "basic") {
+          return res;
+        }
+
         const runtime = await caches.open(RUNTIME_CACHE);
-        runtime.put(req, res.clone());
+        await runtime.put(req, res.clone());
+
         return res;
       } catch (error) {
         return caches.match(req);
