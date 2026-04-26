@@ -1,5 +1,5 @@
-const CACHE = "revo-stats-shell-v2.6";
-const RUNTIME_CACHE = "revo-stats-runtime-v2.6";
+const CACHE = "revo-stats-shell-v2.1";
+const RUNTIME_CACHE = "revo-stats-runtime-v2.1";
 
 const CORE_ASSETS = [
   "./",
@@ -67,27 +67,29 @@ self.addEventListener("fetch", (event) => {
     url.pathname === "";
 
   if (isNavigation) {
-    event.respondWith(
-      (async () => {
-        const cached =
+  event.respondWith(
+    (async () => {
+      try {
+        const fresh = await fetch(req);
+
+        if (fresh && fresh.status === 200 && fresh.type === "basic") {
+          const cache = await caches.open(CACHE);
+          await cache.put("./index.html", fresh.clone());
+        }
+
+        return fresh;
+      } catch (error) {
+        return (
           (await caches.match("./index.html")) ||
-          (await caches.match("./"));
+          (await caches.match("./")) ||
+          Response.error()
+        );
+      }
+    })()
+  );
 
-        fetch(req)
-          .then(async (fresh) => {
-            if (fresh && fresh.status === 200 && fresh.type === "basic") {
-              const cache = await caches.open(CACHE);
-              await cache.put("./index.html", fresh.clone());
-            }
-          })
-          .catch(() => {});
-
-        return cached || fetch(req);
-      })()
-    );
-
-    return;
-  }
+  return;
+}
 
   const isCodeAsset =
     url.pathname.endsWith(".js") ||
