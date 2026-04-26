@@ -3,7 +3,7 @@
   "short_name": "RevoStats",
   "description": "CSV statement reader with local stats and analytics",
 
-  "start_url": "./index.html?v=4",
+  "start_url": "./index.html",
   "scope": "./",
 
   "display": "standalone",

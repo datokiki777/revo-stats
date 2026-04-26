@@ -1,8 +1,7 @@
-const CACHE = "revo-stats-shell-v2.7";
-const RUNTIME_CACHE = "revo-stats-runtime-v2.7";
+const CACHE = "revo-stats-shell-v2.9";
+const RUNTIME_CACHE = "revo-stats-runtime-v2.9";
 
 const CORE_ASSETS = [
-  "./",
   "./index.html",
   "./manifest.json",
 
@@ -67,29 +66,31 @@ self.addEventListener("fetch", (event) => {
     url.pathname === "";
 
   if (isNavigation) {
-  event.respondWith(
-    (async () => {
-      try {
-        const fresh = await fetch(req);
+    event.respondWith(
+      (async () => {
+        try {
+          const fresh = await fetch("./index.html", {
+            cache: "no-store",
+            redirect: "follow"
+          });
 
-        if (fresh && fresh.status === 200 && fresh.type === "basic") {
-          const cache = await caches.open(CACHE);
-          await cache.put("./index.html", fresh.clone());
+          if (fresh && fresh.status === 200 && fresh.type === "basic") {
+            const cache = await caches.open(CACHE);
+            await cache.put("./index.html", fresh.clone());
+          }
+
+          return fresh;
+        } catch (error) {
+          return (
+            (await caches.match("./index.html")) ||
+            Response.error()
+          );
         }
+      })()
+    );
 
-        return fresh;
-      } catch (error) {
-        return (
-          (await caches.match("./index.html")) ||
-          (await caches.match("./")) ||
-          Response.error()
-        );
-      }
-    })()
-  );
-
-  return;
-}
+    return;
+  }
 
   const isCodeAsset =
     url.pathname.endsWith(".js") ||
