@@ -1,5 +1,5 @@
-const CACHE = "revo-stats-shell-v2.1";
-const RUNTIME_CACHE = "revo-stats-runtime-v2.1";
+const CACHE = "revo-stats-shell-v1.9";
+const RUNTIME_CACHE = "revo-stats-runtime-v1.9";
 
 const CORE_ASSETS = [
   "./",
@@ -69,20 +69,20 @@ self.addEventListener("fetch", (event) => {
   if (isNavigation) {
     event.respondWith(
       (async () => {
-        try {
-          const fresh = await fetch(req);
-          if (fresh && fresh.status === 200) {
-            const cache = await caches.open(CACHE);
-            cache.put(req, fresh.clone());
-          }
-          return fresh;
-        } catch (error) {
-          return (
-            (await caches.match(req)) ||
-            (await caches.match("./")) ||
-            (await caches.match("./index.html"))
-          );
-        }
+        const cached =
+          (await caches.match("./index.html")) ||
+          (await caches.match("./"));
+
+        fetch(req)
+          .then(async (fresh) => {
+            if (fresh && fresh.status === 200 && fresh.type === "basic") {
+              const cache = await caches.open(CACHE);
+              await cache.put("./index.html", fresh.clone());
+            }
+          })
+          .catch(() => {});
+
+        return cached || fetch(req);
       })()
     );
     return;
@@ -128,9 +128,7 @@ self.addEventListener("fetch", (event) => {
 
       try {
         const res = await fetch(req);
-        if (!res || res.status !== 200 || res.type !== "basic") {
-          return res;
-        }
+        if (!res || res.status !== 200 || res.type !== "basic") return res;
         const runtime = await caches.open(RUNTIME_CACHE);
         runtime.put(req, res.clone());
         return res;
