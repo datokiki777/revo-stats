@@ -74,73 +74,75 @@ export function renderTransactions(transactions, expandedMerchants = {}) {
   }
 
   root.className = 'tx-list';
+
   root.innerHTML = groups.map((group) => {
     const isOpen = !!expandedMerchants[group.key];
     const totalClass = group.total >= 0 ? 'income' : 'expense';
+
+    const childrenHtml = group.items.map((tx) => {
+      const amountClass = tx.amount >= 0 ? 'income' : 'expense';
+      const feeText = Number(tx.fee || 0) === 0
+        ? ''
+        : `Fee: ${formatMoney(tx.fee, tx.currency || 'EUR')}`;
+
+      return `
+        <article class="tx-row child-tx-row">
+          <div class="tx-left">
+            <div class="tx-main">
+              <div class="tx-sub">
+                ${escapeHtml(formatDate(tx.dateCompleted))} • ${escapeHtml(tx.type || 'Unknown type')}
+              </div>
+
+              <div class="tx-meta-line">
+                <span class="badge">${escapeHtml(tx.currency || '—')}</span>
+                <span class="badge">${escapeHtml(tx.state || '—')}</span>
+                <span class="badge">${escapeHtml(tx.category || 'Other')}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tx-right">
+            <div class="amount ${amountClass}">
+              ${formatMoney(tx.amount, tx.currency || 'EUR')}
+            </div>
+
+            ${feeText ? `<div class="tx-fee">${feeText}</div>` : ''}
+          </div>
+        </article>
+      `;
+    }).join('');
 
     return `
       <article class="merchant-card">
         <div class="merchant-summary">
           <div
-  class="merchant-summary-left"
-  data-merchant-toggle="${escapeHtml(group.key)}"
->
+            class="merchant-summary-left"
+            data-merchant-toggle="${escapeHtml(group.key)}"
+          >
             <div class="merchant-name">${escapeHtml(group.name)}</div>
+
             <div class="merchant-sub">
               ${group.count} transactions • Last: ${escapeHtml(formatDate(group.lastDate))}
             </div>
           </div>
 
           <div class="merchant-summary-right">
-  <button
-    class="change-type-btn merchant-change-btn"
-    type="button"
-    data-change-merchant="${escapeHtml(group.key)}"
-  >
-    Change
-  </button>
+            <button
+              class="change-type-btn merchant-change-btn"
+              type="button"
+              data-change-merchant="${escapeHtml(group.key)}"
+            >
+              Change
+            </button>
 
-  <div class="merchant-total ${totalClass}">
-    ${formatMoney(group.total, group.currency || 'EUR')}
-  </div>
-
-  <div class="merchant-arrow ${isOpen ? 'open' : ''}">
-    ${isOpen ? '▲' : '▼'}
-  </div>
-</div>
-        </button>
+            <div class="merchant-total ${totalClass}">
+              ${formatMoney(group.total, group.currency || 'EUR')}
+            </div>
+          </div>
+        </div>
 
         <div class="merchant-children ${isOpen ? 'open' : ''}">
-          ${group.items.map((tx) => {
-            const amountClass = tx.amount >= 0 ? 'income' : 'expense';
-            const feeText = Number(tx.fee || 0) === 0
-              ? ''
-              : `Fee: ${formatMoney(tx.fee, tx.currency || 'EUR')}`;
-
-            return `
-              <article class="tx-row child-tx-row">
-                <div class="tx-left">
-                  <div class="tx-main">
-                    <div class="tx-sub">
-                      ${escapeHtml(formatDate(tx.dateCompleted))} • ${escapeHtml(tx.type || 'Unknown type')}
-                    </div>
-                    <div class="tx-meta-line">
-  <span class="badge">${escapeHtml(tx.currency || '—')}</span>
-  <span class="badge">${escapeHtml(tx.state || '—')}</span>
-  <span class="badge">${escapeHtml(tx.category || 'Other')}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="tx-right">
-                  <div class="amount ${amountClass}">
-                    ${formatMoney(tx.amount, tx.currency || 'EUR')}
-                  </div>
-                  ${feeText ? `<div class="tx-fee">${feeText}</div>` : ''}
-                </div>
-              </article>
-            `;
-          }).join('')}
+          ${childrenHtml}
         </div>
       </article>
     `;

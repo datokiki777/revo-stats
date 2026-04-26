@@ -66,6 +66,8 @@ window.__categoryRules = rules || [];
       onApplyUpdate: applyAppUpdate
 });
 
+    initTopToggle();
+
     await registerServiceWorker();
 
     renderMeta({
@@ -636,6 +638,53 @@ function askCategoryPicker(currentCategory = 'Other') {
       });
     });
   });
+}
+
+function initTopToggle() {
+  const toggle = document.getElementById('topToggle');
+  const section = document.getElementById('topSection');
+
+  let collapsed = true;
+  let touchStartY = 0;
+  let lastScrollY = window.scrollY;
+
+  section.classList.add('collapsed');
+  toggle.classList.add('collapsed');
+
+  function setCollapsed(value) {
+    collapsed = value;
+    section.classList.toggle('collapsed', collapsed);
+    toggle.classList.toggle('collapsed', collapsed);
+  }
+
+  toggle.addEventListener('click', () => {
+    setCollapsed(!collapsed);
+  });
+
+  toggle.addEventListener('touchstart', (event) => {
+    touchStartY = event.touches[0].clientY;
+  }, { passive: true });
+
+  toggle.addEventListener('touchend', (event) => {
+    const touchEndY = event.changedTouches[0].clientY;
+    const diff = touchEndY - touchStartY;
+
+    if (diff > 35) setCollapsed(false);   // swipe down = open
+    if (diff < -35) setCollapsed(true);   // swipe up = close
+  }, { passive: true });
+
+  window.addEventListener('scroll', () => {
+    const currentY = window.scrollY;
+    const scrollingDown = currentY > lastScrollY;
+
+    if (scrollingDown && currentY > 80) {
+      toggle.classList.add('hidden-on-scroll');
+    } else {
+      toggle.classList.remove('hidden-on-scroll');
+    }
+
+    lastScrollY = currentY;
+  }, { passive: true });
 }
 
 initApp();
