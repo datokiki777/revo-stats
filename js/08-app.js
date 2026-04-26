@@ -522,7 +522,7 @@ function dismissUpdateModal() {
 function applyAppUpdate() {
   if (!state.updateWorker) return;
 
-  userTriggeredUpdate = true; // 🔥 ეს ამატებს კონტროლს
+  sessionStorage.setItem('revoStatsUserUpdate', '1');
 
   state.updateWorker.postMessage({ type: 'SKIP_WAITING' });
   dismissUpdateModal();
@@ -558,11 +558,11 @@ async function registerServiceWorker() {
 let userTriggeredUpdate = false;
 
 navigator.serviceWorker.addEventListener('controllerchange', () => {
-  if (!userTriggeredUpdate) return; // 🔥 მთავარი ფიქსი
+  const userUpdate = sessionStorage.getItem('revoStatsUserUpdate') === '1';
 
-  if (refreshingAfterUpdate) return;
-  refreshingAfterUpdate = true;
+  if (!userUpdate) return;
 
+  sessionStorage.removeItem('revoStatsUserUpdate');
   window.location.reload();
 });
   } catch (error) {
