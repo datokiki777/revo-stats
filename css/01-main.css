@@ -118,6 +118,7 @@ select {
   border-radius: 18px;
   border: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .stat-card .label {
@@ -147,10 +148,6 @@ select {
 
 .stat-card:nth-child(4) .value {
   color: #f6c85f; /* fees */
-}
-
-.stat-card {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .stat-card:active {
@@ -320,33 +317,6 @@ select {
   font-size: 13px;
 }
 
-@media (max-width: 900px) {
-  .summary-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-  .tx-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .tx-right {
-    justify-items: start;
-    text-align: left;
-  }
-
-  .month-card {
-    grid-template-columns: 1fr;
-  }
-
-  .filters-row {
-    grid-template-columns: 1fr;
-  }
-
-  .topbar {
-    flex-direction: column;
-  }
-}
-
 .imports-list {
   display: grid;
   gap: 10px;
@@ -399,173 +369,6 @@ select {
 .import-btn.danger {
   background: var(--danger);
   border-color: transparent;
-}
-
-@media (max-width: 900px) {
-  .import-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-}
-
-.modal-content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #071633;
-  border-radius: 20px 20px 0 0;
-  padding: 16px;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-}
-
-.modal-list {
-  display: grid;
-  gap: 10px;
-}
-
-.modal-item {
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.05);
-  cursor: pointer;
-}
-
-.topbar-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.stat-card {
-  display: grid;
-  gap: 6px;
-  padding: 16px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.stat-card .label {
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-card .value {
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.stat-card:nth-child(1) .value {
-  color: #3eea8a;
-}
-
-.stat-card:nth-child(2) .value {
-  color: #ff6b6b;
-}
-
-.stat-card:nth-child(3) .value {
-  color: #6ea8ff;
-}
-
-.stat-card:nth-child(4) .value {
-  color: #f6c85f;
-}
-
-.stat-card:active {
-  transform: scale(0.98);
-}
-
-.stat-card:hover {
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-}
-
-.tx-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: center;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.tx-left {
-  min-width: 0;
-}
-
-.tx-main {
-  display: grid;
-  gap: 4px;
-}
-
-.tx-right {
-  display: grid;
-  gap: 6px;
-  justify-items: end;
-  text-align: right;
-}
-
-.tx-desc {
-  font-weight: 700;
-  font-size: 15px;
-  line-height: 1.3;
-  word-break: break-word;
-}
-
-.tx-sub {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.tx-meta-line {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 2px;
-}
-
-.tx-fee {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.2;
 }
 
 .modal {
@@ -668,70 +471,6 @@ select {
   display: flex;
   gap: 10px;
   margin-top: 12px;
-}
-
-.import-btn {
-  flex: 1;
-  min-height: 42px;
-  padding: 0 12px;
-  border-radius: 12px;
-  font-size: 14px;
-  cursor: pointer;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.06);
-  color: white;
-}
-
-.import-btn.active {
-  background: var(--primary);
-  color: #071633;
-  font-weight: 700;
-  border-color: transparent;
-}
-
-.import-btn.danger {
-  background: var(--danger);
-  border-color: transparent;
-}
-
-@media (max-width: 900px) {
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .tx-row {
-    grid-template-columns: 1fr;
-  }
-
-  .tx-right {
-    justify-items: start;
-    text-align: left;
-  }
-
-  .month-card {
-    grid-template-columns: 1fr;
-  }
-
-  .filters-row {
-    grid-template-columns: 1fr;
-  }
-
-  .topbar {
-    flex-direction: column;
-  }
-
-  .topbar-actions {
-    width: 100%;
-  }
-
-  .topbar-actions .btn,
-  .topbar-actions .file-btn {
-    flex: 1;
-  }
-
-  .modal-import-actions {
-    flex-direction: column;
-  }
 }
 
 .input-btn {
@@ -844,21 +583,6 @@ select {
   background: rgba(255, 255, 255, 0.03);
 }
 
-@media (max-width: 900px) {
-  .merchant-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .merchant-summary-right {
-    justify-items: start;
-    text-align: left;
-  }
-
-  .merchant-total {
-    font-size: 18px;
-  }
-}
-
 #updateModal .modal-sheet {
   max-width: 520px;
   margin: 0 auto;
@@ -868,12 +592,415 @@ select {
   border-radius: 20px;
 }
 
+.monthly-slider {
+  display: grid;
+  gap: 10px;
+}
+
+.month-card-single {
+  grid-template-columns: 1fr;
+  gap: 14px;
+  padding: 16px;
+}
+
+.month-top {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+}
+
+.month-head-center {
+  text-align: center;
+}
+
+.month-title {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.month-meta {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.month-nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.month-nav-btn:active {
+  transform: scale(0.96);
+}
+
+.month-lines {
+  display: grid;
+  gap: 10px;
+}
+
+.month-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+}
+
+.month-line span {
+  color: var(--muted);
+}
+
+.month-amount {
+  font-size: 17px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.month-amount.income {
+  color: var(--income);
+}
+
+.month-amount.expense {
+  color: var(--expense);
+}
+
+.month-amount.fee {
+  color: #f6c85f;
+}
+
+.month-amount.net {
+  color: #6ea8ff;
+}
+
+.confirm-sheet {
+  max-width: 520px;
+  margin: 0 auto;
+  left: 12px;
+  right: 12px;
+  bottom: 16px;
+  border-radius: 22px;
+}
+
+.confirm-message {
+  margin: 6px 0 16px;
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 15px;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Compact cards */
+.panel {
+  padding: 12px;
+  border-radius: 16px;
+}
+
+.panel-head {
+  margin-bottom: 8px;
+}
+
+.panel-head h2 {
+  font-size: 17px;
+}
+
+.stat-card {
+  padding: 12px;
+  min-height: auto;
+  border-radius: 16px;
+}
+
+.stat-card .label {
+  font-size: 11px;
+}
+
+.stat-card .value {
+  font-size: 20px;
+}
+
+.filters-row {
+  gap: 8px;
+}
+
+.input,
+.input-btn,
+.btn {
+  min-height: 40px;
+  border-radius: 13px;
+}
+
+.month-card-single {
+  padding: 12px;
+  gap: 10px;
+}
+
+.month-top {
+  grid-template-columns: 38px 1fr 38px;
+}
+
+.month-nav-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  font-size: 26px;
+}
+
+.month-title {
+  font-size: 20px;
+}
+
+.month-meta {
+  font-size: 12px;
+}
+
+.month-lines {
+  gap: 8px;
+}
+
+.month-line {
+  padding: 8px 10px;
+  border-radius: 13px;
+}
+
+.month-amount {
+  font-size: 16px;
+}
+
+.merchant-summary {
+  padding: 11px 12px;
+  gap: 10px;
+}
+
+.merchant-name {
+  font-size: 17px;
+}
+
+.merchant-sub {
+  font-size: 12px;
+}
+
+.merchant-total {
+  font-size: 18px;
+}
+
+.merchant-children {
+  padding: 0 12px 12px;
+}
+
+.child-tx-row,
+.tx-row {
+  padding: 11px 12px;
+  border-radius: 14px;
+}
+
+.badge {
+  min-height: 24px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.tx-sub {
+  font-size: 12px;
+}
+
+.change-type-btn {
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(93, 162, 255, 0.14);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.change-type-btn:active {
+  transform: scale(0.96);
+}
+
+.merchant-change-btn {
+  justify-self: end;
+  min-height: 28px;
+  padding: 0 12px;
+  background: rgba(246, 200, 95, 0.16);
+  border-color: rgba(246, 200, 95, 0.35);
+  color: #f6c85f;
+  font-weight: 700;
+}
+
+.category-sheet {
+  max-width: 520px;
+  margin: 0 auto;
+  left: 12px;
+  right: 12px;
+  bottom: 16px;
+  border-radius: 22px;
+}
+
+.category-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.category-option {
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.category-option.active {
+  background: var(--primary);
+  color: #071633;
+  border-color: transparent;
+}
+
+.remember-row {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.remember-row input {
+  margin-right: 8px;
+}
+
+/* Final merchant card layout */
+.merchant-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 11px 12px;
+}
+
+.merchant-summary-left {
+  min-width: 0;
+  cursor: pointer;
+}
+
+.merchant-summary-right {
+  display: grid;
+  grid-template-columns: auto 22px;
+  grid-template-areas:
+    "change arrow"
+    "total arrow";
+  column-gap: 8px;
+  row-gap: 8px;
+  align-items: center;
+  justify-items: end;
+  text-align: right;
+  min-width: 150px;
+}
+
+.merchant-change-btn {
+  grid-area: change;
+  min-height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1;
+  background: rgba(246, 200, 95, 0.16);
+  border-color: rgba(246, 200, 95, 0.35);
+  color: #f6c85f;
+  font-weight: 700;
+}
+
+.merchant-total {
+  grid-area: total;
+  font-size: 18px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.merchant-arrow {
+  grid-area: arrow;
+  align-self: end;
+  justify-self: end;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.merchant-arrow.open {
+  color: var(--text);
+}
+
 @media (max-width: 900px) {
-  #updateModal .modal-sheet {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tx-row {
+    grid-template-columns: 1fr;
+  }
+
+  .tx-right {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .month-card,
+  .filters-row,
+  .import-row {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-direction: column;
+  }
+
+  .topbar-actions {
+    width: 100%;
+  }
+
+  .topbar-actions .btn,
+  .topbar-actions .file-btn {
+    flex: 1;
+  }
+
+  .modal-import-actions {
+    flex-direction: column;
+  }
+
+  #updateModal .modal-sheet,
+  .confirm-sheet,
+  .category-sheet {
     left: 0;
     right: 0;
     bottom: 0;
     max-width: none;
-    border-radius: 20px 20px 0 0;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .merchant-summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .merchant-summary-right {
+    min-width: 140px;
   }
 }
